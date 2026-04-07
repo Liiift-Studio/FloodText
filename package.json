@@ -1,7 +1,7 @@
 {
-	"name": "@liiift-studio/axis-tide",
+	"name": "@liiift-studio/flood-text",
 	"version": "0.0.1",
-	"description": "Slow ambient wave animation of variable font axes across paragraph lines \u2014 the paragraph breathes in weight and width",
+	"description": "Slow ambient wave animation of variable font axes across paragraph lines — the paragraph breathes in weight and width",
 	"type": "module",
 	"main": "dist/index.cjs",
 	"module": "dist/index.js",
