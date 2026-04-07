@@ -1,15 +1,24 @@
 // axis-tide/src/core/types.ts — types and class constants
+
+/** Options controlling the axis-tide wave animation */
 export interface AxisTideOptions {
-	// axis ('wdth' | 'wght' | string)
-	// amplitude (axis units, e.g. 5 for wdth)
-	// period (seconds per full cycle, default 4)
-	// direction ('up' | 'down')
-	// waveShape ('sine' | 'sawtooth' | 'triangle')
+	/** Variable font axis tag, e.g. 'wdth' or 'wght' (default: 'wdth') */
+	axis?: string
+	/** Center value for the axis — the animation oscillates around this (default: 100) */
+	baseValue?: number
+	/** Max deviation from baseValue in axis units (default: 5) */
+	amplitude?: number
+	/** Seconds per full wave cycle passing through the paragraph (default: 4) */
+	period?: number
+	/** Wave travel direction through the paragraph (default: 'down') */
+	direction?: 'up' | 'down'
+	/** Shape of the wave (default: 'sine') */
+	waveShape?: 'sine' | 'sawtooth' | 'triangle'
 }
 
 /** CSS class names injected by axis-tide — use these to target generated markup */
 export const AXIS_TIDE_CLASSES = {
-	word: 'axis-tide-word',
-	line: 'axis-tide-line',
-	probe: 'axis-tide-probe',
+	word: 'at-word',
+	line: 'at-line',
+	probe: 'at-probe',
 } as const
