@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background -->
+  <rect width="64" height="64" rx="14" fill="#160927"/>
+
+  <!-- Text lines — alternating full and short, creating the sawtooth rag -->
+  <!-- Line 1: full -->
+  <rect x="9" y="12" width="46" height="7" rx="3.5" fill="#f0ece3"/>
+  <!-- Line 2: short (pulled in ~40%) -->
+  <rect x="9" y="23" width="27" height="7" rx="3.5" fill="#f0ece3" opacity="0.75"/>
+  <!-- Line 3: full -->
+  <rect x="9" y="34" width="46" height="7" rx="3.5" fill="#f0ece3"/>
+  <!-- Line 4: short -->
+  <rect x="9" y="45" width="27" height="7" rx="3.5" fill="#f0ece3" opacity="0.75"/>
+</svg>
