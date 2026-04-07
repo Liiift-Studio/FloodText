@@ -1,5 +1,5 @@
 {
-	"name": "axis-tide",
+	"name": "@liiift-studio/axis-tide",
 	"version": "0.0.1",
 	"description": "Slow ambient wave animation of variable font axes across paragraph lines \u2014 the paragraph breathes in weight and width",
 	"type": "module",
