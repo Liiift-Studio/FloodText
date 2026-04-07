@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 	openGraph: {
 		title: "Axis Tide — Ambient variable font wave animation",
 		description: "A slow wave travels through a paragraph, modulating any variable font axis line by line.",
-		url: "https://axis-tide.liiift.studio",
+		url: "https://floodtext.com",
 		siteName: "Axis Tide",
 		type: "website",
 	},
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 		title: "Axis Tide — Ambient variable font wave animation",
 		description: "A slow wave travels through a paragraph, modulating any variable font axis line by line.",
 	},
-	metadataBase: new URL("https://axis-tide.liiift.studio"),
+	metadataBase: new URL("https://floodtext.com"),
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
