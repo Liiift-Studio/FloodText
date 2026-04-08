@@ -1,18 +1,18 @@
-// axis-tide/src/react/useAxisTide.ts — React hook: line detection + animation lifecycle
+// floodText/src/react/useFloodText.ts — React hook: line detection + animation lifecycle
 import { useCallback, useLayoutEffect, useRef } from 'react'
-import { applyAxisTide, startTide, getCleanHTML } from '../core/adjust'
-import type { AxisTideOptions } from '../core/types'
+import { applyFloodText, startFloodText, getCleanHTML } from '../core/adjust'
+import type { FloodTextOptions } from '../core/types'
 
 /**
- * React hook that applies the axis-tide wave animation to a ref'd element.
+ * React hook that applies the flood-text wave animation to a ref'd element.
  * Detects lines in a useLayoutEffect, starts the rAF animation loop, and
  * automatically re-detects lines and restarts animation on container width change.
  * Respects `prefers-reduced-motion` — skips animation when the user has opted out.
  *
- * @param options - AxisTideOptions controlling axis, amplitude, period, etc.
+ * @param options - FloodTextOptions controlling axis, amplitude, period, etc.
  * @returns A ref to attach to the target HTMLElement
  */
-export function useAxisTide(options: AxisTideOptions) {
+export function useFloodText(options: FloodTextOptions) {
 	const ref             = useRef<HTMLElement>(null)
 	const originalHTMLRef = useRef<string | null>(null)
 	const optionsRef      = useRef(options)
@@ -32,18 +32,18 @@ export function useAxisTide(options: AxisTideOptions) {
 			typeof window !== 'undefined' &&
 			window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-		const lineSpans = applyAxisTide(el, originalHTMLRef.current, optionsRef.current)
+		const lineSpans = applyFloodText(el, originalHTMLRef.current, optionsRef.current)
 
 		if (prefersReduced || lineSpans.length === 0) {
 			return () => {}
 		}
 
 		// Start animation loop and return its stop function
-		return startTide(lineSpans, optionsRef.current)
+		return startFloodText(lineSpans, optionsRef.current)
 	}, [])
 
 	useLayoutEffect(() => {
-		let stopTide = run()
+		let stopAnimation = run()
 
 		let lastWidth = 0
 		let rafId = 0
@@ -53,10 +53,10 @@ export function useAxisTide(options: AxisTideOptions) {
 			if (w === lastWidth) return
 			lastWidth = w
 			// Stop existing animation, then re-detect lines and restart on next frame
-			stopTide()
+			stopAnimation()
 			cancelAnimationFrame(rafId)
 			rafId = requestAnimationFrame(() => {
-				stopTide = run()
+				stopAnimation = run()
 			})
 		})
 
@@ -65,7 +65,7 @@ export function useAxisTide(options: AxisTideOptions) {
 		return () => {
 			ro.disconnect()
 			cancelAnimationFrame(rafId)
-			stopTide()
+			stopAnimation()
 		}
 	}, [run])
 

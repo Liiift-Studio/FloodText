@@ -1,7 +1,7 @@
-// axis-tide/src/__tests__/adjust.test.ts — core algorithm tests
+// floodText/src/__tests__/adjust.test.ts — core algorithm tests
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { applyAxisTide, removeAxisTide, getCleanHTML, startTide, computeWave } from '../core/adjust'
-import { AXIS_TIDE_CLASSES } from '../core/types'
+import { applyFloodText, removeFloodText, getCleanHTML, startFloodText, computeWave } from '../core/adjust'
+import { FLOOD_TEXT_CLASSES } from '../core/types'
 
 // ─── DOM measurement mock ─────────────────────────────────────────────────────
 const CONTAINER_WIDTH = 600
@@ -9,7 +9,7 @@ const WORD_WIDTH = 80
 
 /**
  * Mock getBoundingClientRect so line-detection works without a real layout engine.
- * Word spans (at-word) are assigned top=0 for the first 7 words and top=20 afterward,
+ * Word spans (ft-word) are assigned top=0 for the first 7 words and top=20 afterward,
  * simulating two wrapped lines.
  */
 function mockMeasurement() {
@@ -17,10 +17,10 @@ function mockMeasurement() {
 
 	Element.prototype.getBoundingClientRect = function (this: Element) {
 		const el = this as HTMLElement
-		if (el.classList?.contains(AXIS_TIDE_CLASSES.probe)) {
+		if (el.classList?.contains(FLOOD_TEXT_CLASSES.probe)) {
 			return { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, x: 0, y: 0, toJSON: () => {} } as DOMRect
 		}
-		if (el.classList?.contains(AXIS_TIDE_CLASSES.word)) {
+		if (el.classList?.contains(FLOOD_TEXT_CLASSES.word)) {
 			const idx = wordCallCount++
 			const top = idx < 7 ? 0 : 20
 			return {
@@ -59,7 +59,7 @@ function makeElement(html: string): HTMLElement {
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
-describe('axis-tide', () => {
+describe('flood-text', () => {
 	beforeEach(() => {
 		document.body.innerHTML = ''
 		mockMeasurement()
@@ -69,21 +69,21 @@ describe('axis-tide', () => {
 		vi.restoreAllMocks()
 	})
 
-	// 1. applyAxisTide produces .at-line spans
-	it('applyAxisTide produces at-line spans', () => {
+	// 1. applyFloodText produces .ft-line spans
+	it('applyFloodText produces ft-line spans', () => {
 		const el = makeElement('one two three four five six seven eight nine ten')
 		const original = getCleanHTML(el)
-		applyAxisTide(el, original, {})
-		const lineSpans = el.querySelectorAll(`.${AXIS_TIDE_CLASSES.line}`)
+		applyFloodText(el, original, {})
+		const lineSpans = el.querySelectorAll(`.${FLOOD_TEXT_CLASSES.line}`)
 		expect(lineSpans.length).toBeGreaterThan(0)
 	})
 
-	// 2. removeAxisTide restores original HTML
-	it('removeAxisTide restores original HTML', () => {
+	// 2. removeFloodText restores original HTML
+	it('removeFloodText restores original HTML', () => {
 		const el = makeElement('<em>Hello</em> world')
 		const original = getCleanHTML(el)
-		applyAxisTide(el, original, {})
-		removeAxisTide(el, original)
+		applyFloodText(el, original, {})
+		removeFloodText(el, original)
 		expect(el.innerHTML).toBe(original)
 	})
 
@@ -95,21 +95,21 @@ describe('axis-tide', () => {
 		expect(html).toBe(html2)
 	})
 
-	// 4. Inline elements preserved after applyAxisTide
+	// 4. Inline elements preserved after applyFloodText
 	it('preserves inline elements', () => {
 		const el = makeElement('<em>italic</em> and <strong>bold</strong>')
 		const original = getCleanHTML(el)
-		applyAxisTide(el, original, {})
+		applyFloodText(el, original, {})
 		expect(el.querySelector('em')).toBeTruthy()
 		expect(el.querySelector('strong')).toBeTruthy()
 	})
 
-	// 5. startTide returns a function
-	it('startTide returns a stop function', () => {
+	// 5. startFloodText returns a function
+	it('startFloodText returns a stop function', () => {
 		const el = makeElement('alpha beta gamma delta epsilon zeta eta theta iota kappa')
 		const original = getCleanHTML(el)
-		const lineSpans = applyAxisTide(el, original, {})
-		const stop = startTide(lineSpans, {})
+		const lineSpans = applyFloodText(el, original, {})
+		const stop = startFloodText(lineSpans, {})
 		expect(typeof stop).toBe('function')
 		stop()
 	})
@@ -120,7 +120,7 @@ describe('axis-tide', () => {
 		const amplitude = 10
 		const el = makeElement('one two three four five six seven eight nine ten')
 		const original = getCleanHTML(el)
-		const lineSpans = applyAxisTide(el, original, {})
+		const lineSpans = applyFloodText(el, original, {})
 
 		const n = lineSpans.length
 		for (let i = 0; i < n; i++) {
@@ -136,10 +136,9 @@ describe('axis-tide', () => {
 	it('with amplitude 0 all lines get baseValue', () => {
 		const el = makeElement('word one two three four five six seven eight nine ten')
 		const original = getCleanHTML(el)
-		const lineSpans = applyAxisTide(el, original, {})
-		const stop = startTide(lineSpans, { amplitude: 0, baseValue: 100 })
+		const lineSpans = applyFloodText(el, original, {})
+		const stop = startFloodText(lineSpans, { amplitude: 0, baseValue: 100 })
 
-		// Verify wave math directly: amplitude=0 always yields baseValue regardless of wave
 		const n = lineSpans.length
 		for (let i = 0; i < n; i++) {
 			const pos = n > 1 ? i / (n - 1) : 0
@@ -151,10 +150,10 @@ describe('axis-tide', () => {
 	})
 
 	// 8. Empty element doesn't throw
-	it('applyAxisTide does not throw on empty element', () => {
+	it('applyFloodText does not throw on empty element', () => {
 		const el = makeElement('')
 		const original = getCleanHTML(el)
-		expect(() => applyAxisTide(el, original, {})).not.toThrow()
+		expect(() => applyFloodText(el, original, {})).not.toThrow()
 	})
 
 	// 9. Wave utility functions return values in [-1, 1]

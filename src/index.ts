@@ -1,6 +1,6 @@
-// axis-tide/src/index.ts — public API exports
-export { applyAxisTide, startTide, removeAxisTide, getCleanHTML } from './core/adjust'
-export { useAxisTide } from './react/useAxisTide'
-export { AxisTideText } from './react/AxisTideText'
-export type { AxisTideOptions } from './core/types'
-export { AXIS_TIDE_CLASSES } from './core/types'
+// floodText/src/index.ts — public API exports
+export { applyFloodText, startFloodText, removeFloodText, getCleanHTML, computeWave } from './core/adjust'
+export { useFloodText } from './react/useFloodText'
+export { FloodText } from './react/FloodText'
+export type { FloodTextOptions } from './core/types'
+export { FLOOD_TEXT_CLASSES } from './core/types'
