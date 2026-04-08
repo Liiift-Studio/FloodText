@@ -60,11 +60,11 @@ export default function Home() {
 				<div className="flex flex-col gap-8 text-sm">
 					<div className="flex flex-col gap-3">
 						<p className="opacity-50">Drop-in component</p>
-						<CodeBlock code={`import { AxisTideText } from '@liiift-studio/floodtext'
+						<CodeBlock code={`import { FloodText } from '@liiift-studio/floodtext'
 
-<AxisTideText axis="wdth" amplitude={8} period={4} waveShape="sine">
+<FloodText axis="wdth" amplitude={8} period={4} waveShape="sine">
   Your paragraph text here...
-</AxisTideText>`} />
+</FloodText>`} />
 					</div>
 					<div className="flex flex-col gap-3">
 						<p className="opacity-50">Options</p>

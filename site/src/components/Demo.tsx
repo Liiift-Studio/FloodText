@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useDeferredValue } from "react"
-import { AxisTideText } from "@liiift-studio/floodtext"
+import { FloodText } from "@liiift-studio/floodtext"
 
 const SAMPLE = `Watch the paragraph breathe. A wave passes through it — slow, continuous, invisible unless you hold your eye still and wait. Each line of text sits on a different moment of the curve, its axis value rising and falling as the tide moves through. The effect is not meant to be noticed. It is meant to be felt: a text that is alive rather than set, that shifts like water rather than stone. Variable fonts make this possible. The wdth axis compresses and expands. The wght axis lightens and darkens. The opsz axis shifts optical weight. A tide running through any of them gives the paragraph a quality that print cannot have.`
 
@@ -51,9 +51,9 @@ export default function Demo() {
 					<button key={v} onClick={() => setDirection(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 			</div>
-			<AxisTideText axis={axis} amplitude={dAmplitude} period={dPeriod} waveShape={waveShape} direction={direction} style={sampleStyle}>
+			<FloodText axis={axis} amplitude={dAmplitude} period={dPeriod} waveShape={waveShape} direction={direction} style={sampleStyle}>
 				{SAMPLE}
-			</AxisTideText>
+			</FloodText>
 			<p className="text-xs opacity-50 italic mt-6">A {waveShape} wave, {direction === 'down' ? 'traveling top to bottom' : 'traveling bottom to top'}, ±{amplitude} on the {axis} axis every {period}s.</p>
 		</div>
 	)
