@@ -18,6 +18,8 @@ export function useFloodText(options: FloodTextOptions) {
 	const optionsRef      = useRef(options)
 	optionsRef.current = options
 
+	const { axis, baseValue, amplitude, period, direction, waveShape } = options
+
 	const run = useCallback((): (() => void) => {
 		const el = ref.current
 		if (!el) return () => {}
@@ -40,7 +42,7 @@ export function useFloodText(options: FloodTextOptions) {
 
 		// Start animation loop and return its stop function
 		return startFloodText(lineSpans, optionsRef.current)
-	}, [])
+	}, [axis, baseValue, amplitude, period, direction, waveShape])
 
 	useLayoutEffect(() => {
 		let stopAnimation = run()
