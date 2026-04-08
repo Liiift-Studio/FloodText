@@ -64,5 +64,6 @@
 	},
 	"bugs": {
 		"url": "https://github.com/Liiift-Studio/FloodText/issues"
-	}
+	},
+	"sideEffects": false
 }
