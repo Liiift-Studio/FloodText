@@ -1,5 +1,5 @@
 {
-	"name": "@liiift-studio/flood-text",
+	"name": "@liiift-studio/floodText",
 	"version": "0.0.1",
 	"description": "Slow ambient wave animation of variable font axes across paragraph lines — the paragraph breathes in weight and width",
 	"type": "module",

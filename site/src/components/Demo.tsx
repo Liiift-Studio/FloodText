@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useDeferredValue } from "react"
-import { AxisTideText } from "@liiift-studio/flood-text"
+import { AxisTideText } from "@liiift-studio/floodText"
 
 const SAMPLE = `Watch the paragraph breathe. A wave passes through it — slow, continuous, invisible unless you hold your eye still and wait. Each line of text sits on a different moment of the curve, its axis value rising and falling as the tide moves through. The effect is not meant to be noticed. It is meant to be felt: a text that is alive rather than set, that shifts like water rather than stone. Variable fonts make this possible. The wdth axis compresses and expands. The wght axis lightens and darkens. The opsz axis shifts optical weight. A tide running through any of them gives the paragraph a quality that print cannot have.`
 
