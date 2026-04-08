@@ -45,12 +45,14 @@ export default function Demo() {
 	const [amplitude, setAmplitude] = useState(8)
 	const [period, setPeriod] = useState(4)
 	const [axis, setAxis] = useState<'wdth' | 'wght'>('wdth')
+	const [baseValue, setBaseValue] = useState(100)
 	const [waveShape, setWaveShape] = useState<'sine' | 'sawtooth' | 'triangle'>('sine')
 	const [direction, setDirection] = useState<'down' | 'up'>('down')
 	const [beforeAfter, setComparing] = useState(false)
 
 	const dAmplitude = useDeferredValue(amplitude)
 	const dPeriod = useDeferredValue(period)
+	const dBaseValue = useDeferredValue(baseValue)
 
 	const sampleStyle: React.CSSProperties = {
 		fontFamily: "var(--font-merriweather), serif",
@@ -59,7 +61,7 @@ export default function Demo() {
 	}
 
 	return (
-		<div className="w-full">
+		<div className="w-full" style={{ overflow: 'hidden' }}>
 			<div className="grid grid-cols-2 gap-6 mb-6">
 				<Slider label="Amplitude" value={amplitude} min={1} max={20} step={1} onChange={setAmplitude} />
 				<Slider label="Period (s)" value={period} min={1} max={12} step={0.5} onChange={setPeriod} />
@@ -67,7 +69,7 @@ export default function Demo() {
 			<div className="flex flex-wrap items-center gap-3 mb-8">
 				<span className="text-xs uppercase tracking-widest opacity-50">Axis</span>
 				{(['wdth', 'wght'] as const).map(v => (
-					<button key={v} onClick={() => setAxis(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: axis === v ? 1 : 0.5, background: axis === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+					<button key={v} onClick={() => { setAxis(v); setBaseValue(v === 'wght' ? 400 : 100) }} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: axis === v ? 1 : 0.5, background: axis === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Wave</span>
 				{(['sine', 'triangle', 'sawtooth'] as const).map(v => (
@@ -78,8 +80,8 @@ export default function Demo() {
 					<button key={v} onClick={() => setDirection(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 			</div>
-			<div className="relative pb-8" style={{ overflow: 'hidden' }}>
-				<FloodText axis={axis} amplitude={dAmplitude} period={dPeriod} waveShape={waveShape} direction={direction} style={sampleStyle}>
+			<div className="relative pb-8">
+				<FloodText axis={axis} amplitude={dAmplitude} period={dPeriod} waveShape={waveShape} direction={direction} baseValue={dBaseValue} style={sampleStyle}>
 					{SAMPLE}
 				</FloodText>
 				{beforeAfter && (

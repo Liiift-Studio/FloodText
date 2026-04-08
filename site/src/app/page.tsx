@@ -67,6 +67,26 @@ export default function Home() {
 </FloodText>`} />
 					</div>
 					<div className="flex flex-col gap-3">
+						<p className="opacity-50">Hook</p>
+						<CodeBlock code={`import { useFloodText } from '@liiift-studio/floodtext'
+
+const ref = useFloodText({ axis: 'wdth', amplitude: 8, period: 4 })
+<p ref={ref}>{children}</p>`} />
+					</div>
+					<div className="flex flex-col gap-3">
+						<p className="opacity-50">Vanilla JS</p>
+						<CodeBlock code={`import { applyFloodText, startFloodText, removeFloodText, getCleanHTML } from '@liiift-studio/floodtext'
+
+const el = document.querySelector('p')
+const original = getCleanHTML(el)
+const lines = applyFloodText(el, original, { axis: 'wdth', amplitude: 8, period: 4 })
+const stop = startFloodText(lines, { axis: 'wdth', amplitude: 8, period: 4 })
+
+// Later — stop animation and restore:
+stop()
+removeFloodText(el, original)`} />
+					</div>
+					<div className="flex flex-col gap-3">
 						<p className="opacity-50">Options</p>
 						<table className="w-full text-xs">
 							<thead><tr className="opacity-50 text-left"><th className="pb-2 pr-6 font-normal">Option</th><th className="pb-2 pr-6 font-normal">Default</th><th className="pb-2 font-normal">Description</th></tr></thead>
