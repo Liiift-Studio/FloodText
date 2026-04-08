@@ -13,8 +13,8 @@ export default function Home() {
 				<div className="flex flex-col gap-2">
 					<p className="text-xs uppercase tracking-widest opacity-50">floodtext</p>
 					<h1 className="text-4xl lg:text-8xl xl:text-9xl" style={{ fontFamily: "var(--font-merriweather), serif", lineHeight: "1.05em" }}>
-						A slow tide,<br />
-						<span style={{ opacity: 0.5, fontStyle: "italic" }}>through type.</span>
+						Character<br />
+						<span style={{ opacity: 0.5, fontStyle: "italic" }}>by character.</span>
 					</h1>
 				</div>
 				<div className="flex items-center gap-4">
@@ -25,7 +25,7 @@ export default function Home() {
 					<span>TypeScript</span><span>·</span><span>Zero dependencies</span><span>·</span><span>React + Vanilla JS</span>
 				</div>
 				<p className="text-base opacity-60 leading-relaxed max-w-lg">
-					A continuous wave — sine, sawtooth, or triangle — travels through a paragraph, modulating any variable font axis line by line. An ambient animation that gives text a breathing, living quality that print cannot have.
+					A wave washes through the body copy character by character — modulating weight, width, oblique angle, or opacity as it passes. Not line by line, not word by word: every letterform sits at its own moment in the curve. At low amplitude it reads as texture; at high amplitude, as transformation.
 				</p>
 			</section>
 
@@ -42,12 +42,12 @@ export default function Home() {
 				<p className="text-xs uppercase tracking-widest opacity-50">How it works</p>
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-12 text-sm leading-relaxed opacity-70">
 					<div className="flex flex-col gap-3">
-						<p className="font-semibold opacity-100 text-base">Per-line phase offset</p>
-						<p>The algorithm detects visual lines, then assigns each a phase position based on its index. Each frame, the wave function is evaluated at each line&apos;s phase, producing a unique axis value per line.</p>
+						<p className="font-semibold opacity-100 text-base">Per-character phase</p>
+						<p>Every visible character is wrapped in an inline span. Each frame, the wave function is evaluated at that character&apos;s position in the text — normalised across the whole paragraph. The density option controls how many wave cycles are visible at once.</p>
 					</div>
 					<div className="flex flex-col gap-3">
-						<p className="font-semibold opacity-100 text-base">Continuous rAF loop</p>
-						<p>A requestAnimationFrame loop advances the wave each frame using elapsed time, so the animation speed is consistent regardless of display refresh rate. The loop is cleaned up when the component unmounts.</p>
+						<p className="font-semibold opacity-100 text-base">Traveling wave</p>
+						<p>The wave advances through the characters over time using a requestAnimationFrame loop. Speed is consistent regardless of display refresh rate. The loop cleans up on unmount. Whitespace is left as bare text nodes — no layout impact, no reflow.</p>
 					</div>
 				</div>
 			</section>
@@ -62,7 +62,7 @@ export default function Home() {
 						<p className="opacity-50">Drop-in component</p>
 						<CodeBlock code={`import { FloodText } from '@liiift-studio/floodtext'
 
-<FloodText axis="wdth" amplitude={8} period={4} waveShape="sine">
+<FloodText effect="wght" amplitude={200} period={4} density={1}>
   Your paragraph text here...
 </FloodText>`} />
 					</div>
@@ -70,7 +70,7 @@ export default function Home() {
 						<p className="opacity-50">Hook</p>
 						<CodeBlock code={`import { useFloodText } from '@liiift-studio/floodtext'
 
-const ref = useFloodText({ axis: 'wdth', amplitude: 8, period: 4 })
+const ref = useFloodText({ effect: 'wght', amplitude: 200, period: 4, density: 1 })
 <p ref={ref}>{children}</p>`} />
 					</div>
 					<div className="flex flex-col gap-3">
@@ -79,8 +79,8 @@ const ref = useFloodText({ axis: 'wdth', amplitude: 8, period: 4 })
 
 const el = document.querySelector('p')
 const original = getCleanHTML(el)
-const lines = applyFloodText(el, original, { axis: 'wdth', amplitude: 8, period: 4 })
-const stop = startFloodText(lines, { axis: 'wdth', amplitude: 8, period: 4 })
+const chars = applyFloodText(el, original, { effect: 'wght', amplitude: 200, period: 4 })
+const stop = startFloodText(chars, { effect: 'wght', amplitude: 200, period: 4 })
 
 // Later — stop animation and restore:
 stop()
@@ -91,12 +91,12 @@ removeFloodText(el, original)`} />
 						<table className="w-full text-xs">
 							<thead><tr className="opacity-50 text-left"><th className="pb-2 pr-6 font-normal">Option</th><th className="pb-2 pr-6 font-normal">Default</th><th className="pb-2 font-normal">Description</th></tr></thead>
 							<tbody className="opacity-70">
-								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">axis</td><td className="py-2 pr-6">'wdth'</td><td className="py-2">Variable font axis tag.</td></tr>
-								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">baseValue</td><td className="py-2 pr-6">100</td><td className="py-2">Center value for the axis — the animation oscillates around this.</td></tr>
-								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">amplitude</td><td className="py-2 pr-6">5</td><td className="py-2">Max deviation from baseValue in axis units.</td></tr>
+								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">effect</td><td className="py-2 pr-6">&apos;wght&apos;</td><td className="py-2">&apos;wght&apos; | &apos;wdth&apos; | &apos;oblique&apos; | &apos;opacity&apos;</td></tr>
+								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">amplitude</td><td className="py-2 pr-6">auto</td><td className="py-2">Peak deviation from neutral. Defaults: wght 200, wdth 20, oblique 15deg, opacity 0.3.</td></tr>
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">period</td><td className="py-2 pr-6">4</td><td className="py-2">Seconds per full wave cycle.</td></tr>
-								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">waveShape</td><td className="py-2 pr-6">'sine'</td><td className="py-2">'sine' | 'sawtooth' | 'triangle'</td></tr>
-								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">direction</td><td className="py-2 pr-6">'down'</td><td className="py-2">Wave travel direction through the paragraph.</td></tr>
+								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">density</td><td className="py-2 pr-6">1</td><td className="py-2">Wave cycles visible across the full paragraph at once.</td></tr>
+								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">direction</td><td className="py-2 pr-6">&apos;right&apos;</td><td className="py-2">Wave travel direction through the text. &apos;right&apos; | &apos;left&apos;.</td></tr>
+								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">waveShape</td><td className="py-2 pr-6">&apos;sine&apos;</td><td className="py-2">&apos;sine&apos; | &apos;sawtooth&apos; | &apos;triangle&apos;</td></tr>
 							</tbody>
 						</table>
 					</div>

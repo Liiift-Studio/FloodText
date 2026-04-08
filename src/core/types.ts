@@ -1,24 +1,26 @@
 // floodText/src/core/types.ts — types and class constants
 
-/** Options controlling the flood-text wave animation */
+/** Style effect driven by the per-character wave */
+export type FloodEffect = 'wght' | 'wdth' | 'oblique' | 'opacity'
+
+/** Options controlling the flood-text character wave animation */
 export interface FloodTextOptions {
-	/** Variable font axis tag, e.g. 'wdth' or 'wght' (default: 'wdth') */
-	axis?: string
-	/** Center value for the axis — the animation oscillates around this (default: 100) */
-	baseValue?: number
-	/** Max deviation from baseValue in axis units (default: 5) */
+	/** Visual effect to animate per character (default: 'wght') */
+	effect?: FloodEffect
+	/** Peak deviation from the neutral value, in style-specific units (default: auto per style) */
 	amplitude?: number
-	/** Seconds per full wave cycle passing through the paragraph (default: 4) */
+	/** Seconds per full wave cycle (default: 4) */
 	period?: number
-	/** Wave travel direction through the paragraph (default: 'down') */
-	direction?: 'up' | 'down'
+	/** Number of wave cycles visible across the full paragraph at once (default: 1) */
+	density?: number
+	/** Wave travel direction through the text (default: 'right') */
+	direction?: 'left' | 'right'
 	/** Shape of the wave (default: 'sine') */
 	waveShape?: 'sine' | 'sawtooth' | 'triangle'
 }
 
 /** CSS class names injected by flood-text — use these to target generated markup */
 export const FLOOD_TEXT_CLASSES = {
-	word: 'ft-word',
-	line: 'ft-line',
+	char: 'ft-char',
 	probe: 'ft-probe',
 } as const

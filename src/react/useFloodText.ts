@@ -1,15 +1,15 @@
-// floodText/src/react/useFloodText.ts — React hook: line detection + animation lifecycle
+// floodText/src/react/useFloodText.ts — React hook: character detection + animation lifecycle
 import { useCallback, useLayoutEffect, useRef } from 'react'
 import { applyFloodText, startFloodText, getCleanHTML } from '../core/adjust'
 import type { FloodTextOptions } from '../core/types'
 
 /**
- * React hook that applies the flood-text wave animation to a ref'd element.
- * Detects lines in a useLayoutEffect, starts the rAF animation loop, and
- * automatically re-detects lines and restarts animation on container width change.
+ * React hook that applies the flood-text per-character wave animation to a ref'd element.
+ * Wraps characters in a useLayoutEffect, starts the rAF animation loop, and
+ * automatically re-wraps and restarts animation on container width change.
  * Respects `prefers-reduced-motion` — skips animation when the user has opted out.
  *
- * @param options - FloodTextOptions controlling axis, amplitude, period, etc.
+ * @param options - FloodTextOptions controlling style, amplitude, period, density, etc.
  * @returns A ref to attach to the target HTMLElement
  */
 export function useFloodText(options: FloodTextOptions) {
@@ -18,7 +18,7 @@ export function useFloodText(options: FloodTextOptions) {
 	const optionsRef      = useRef(options)
 	optionsRef.current = options
 
-	const { axis, baseValue, amplitude, period, direction, waveShape } = options
+	const { effect, amplitude, period, density, direction, waveShape } = options
 
 	const run = useCallback((): (() => void) => {
 		const el = ref.current
@@ -34,15 +34,15 @@ export function useFloodText(options: FloodTextOptions) {
 			typeof window !== 'undefined' &&
 			window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-		const lineSpans = applyFloodText(el, originalHTMLRef.current, optionsRef.current)
+		const charSpans = applyFloodText(el, originalHTMLRef.current, optionsRef.current)
 
-		if (prefersReduced || lineSpans.length === 0) {
+		if (prefersReduced || charSpans.length === 0) {
 			return () => {}
 		}
 
 		// Start animation loop and return its stop function
-		return startFloodText(lineSpans, optionsRef.current)
-	}, [axis, baseValue, amplitude, period, direction, waveShape])
+		return startFloodText(charSpans, optionsRef.current)
+	}, [effect, amplitude, period, density, direction, waveShape])
 
 	useLayoutEffect(() => {
 		let stopAnimation = run()
@@ -54,7 +54,7 @@ export function useFloodText(options: FloodTextOptions) {
 			const w = Math.round(entries[0].contentRect.width)
 			if (w === lastWidth) return
 			lastWidth = w
-			// Stop existing animation, then re-detect lines and restart on next frame
+			// Stop existing animation, then re-wrap and restart on next frame
 			stopAnimation()
 			cancelAnimationFrame(rafId)
 			rafId = requestAnimationFrame(() => {
