@@ -110,16 +110,19 @@ describe('flood-text', () => {
 		expect(spans2.length).toBe(spans1.length)
 	})
 
-	// 11. direction:'left' works without throwing
-	it('direction left works without throwing', () => {
-		const el = makeElement('Hello world')
-		const original = getCleanHTML(el)
-		const charSpans = applyFloodText(el, original, { direction: 'left' })
-		expect(charSpans.length).toBeGreaterThan(0)
-		const stop = startFloodText(charSpans, { direction: 'left' })
-		expect(typeof stop).toBe('function')
-		stop()
-	})
+	// 11. All direction options work without throwing
+	it.each(['right', 'left', 'diagonal-down', 'diagonal-up'] as const)(
+		'direction %s works without throwing',
+		(direction) => {
+			const el = makeElement('Hello world')
+			const original = getCleanHTML(el)
+			const charSpans = applyFloodText(el, original, { direction })
+			expect(charSpans.length).toBeGreaterThan(0)
+			const stop = startFloodText(charSpans, { direction })
+			expect(typeof stop).toBe('function')
+			stop()
+		},
+	)
 
 	// 12. All supported effect types start without throwing
 	it.each(['wght', 'wdth', 'oblique', 'opacity'] as const)(

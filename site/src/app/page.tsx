@@ -62,7 +62,7 @@ export default function Home() {
 						<p className="opacity-50">Drop-in component</p>
 						<CodeBlock code={`import { FloodText } from '@liiift-studio/floodtext'
 
-<FloodText effect="wght" amplitude={200} period={4} density={1}>
+<FloodText effect="wght" amplitude={200} period={4} density={2} direction="diagonal-down">
   Your paragraph text here...
 </FloodText>`} />
 					</div>
@@ -70,7 +70,7 @@ export default function Home() {
 						<p className="opacity-50">Hook</p>
 						<CodeBlock code={`import { useFloodText } from '@liiift-studio/floodtext'
 
-const ref = useFloodText({ effect: 'wght', amplitude: 200, period: 4, density: 1 })
+const ref = useFloodText({ effect: 'wght', amplitude: 200, period: 4, density: 2, direction: 'diagonal-down' })
 <p ref={ref}>{children}</p>`} />
 					</div>
 					<div className="flex flex-col gap-3">
@@ -79,8 +79,8 @@ const ref = useFloodText({ effect: 'wght', amplitude: 200, period: 4, density: 1
 
 const el = document.querySelector('p')
 const original = getCleanHTML(el)
-const chars = applyFloodText(el, original, { effect: 'wght', amplitude: 200, period: 4 })
-const stop = startFloodText(chars, { effect: 'wght', amplitude: 200, period: 4 })
+const chars = applyFloodText(el, original, { effect: 'wght', amplitude: 200, period: 4, density: 2, direction: 'diagonal-down' })
+const stop = startFloodText(chars, { effect: 'wght', amplitude: 200, period: 4, density: 2, direction: 'diagonal-down' })
 
 // Later — stop animation and restore:
 stop()
@@ -94,8 +94,8 @@ removeFloodText(el, original)`} />
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">effect</td><td className="py-2 pr-6">&apos;wght&apos;</td><td className="py-2">&apos;wght&apos; | &apos;wdth&apos; | &apos;oblique&apos; | &apos;opacity&apos;</td></tr>
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">amplitude</td><td className="py-2 pr-6">auto</td><td className="py-2">Peak deviation from neutral. Defaults: wght 200, wdth 20, oblique 15deg, opacity 0.3.</td></tr>
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">period</td><td className="py-2 pr-6">4</td><td className="py-2">Seconds per full wave cycle.</td></tr>
-								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">density</td><td className="py-2 pr-6">1</td><td className="py-2">Wave cycles visible across the full paragraph at once.</td></tr>
-								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">direction</td><td className="py-2 pr-6">&apos;right&apos;</td><td className="py-2">Wave travel direction through the text. &apos;right&apos; | &apos;left&apos;.</td></tr>
+								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">density</td><td className="py-2 pr-6">2</td><td className="py-2">Wave cycles visible across the paragraph at once. Higher = more bands.</td></tr>
+								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">direction</td><td className="py-2 pr-6">&apos;diagonal-down&apos;</td><td className="py-2">&apos;diagonal-down&apos; ↘ | &apos;diagonal-up&apos; ↗ | &apos;right&apos; → | &apos;left&apos; ←. Diagonal directions use 2D character positions.</td></tr>
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">waveShape</td><td className="py-2 pr-6">&apos;sine&apos;</td><td className="py-2">&apos;sine&apos; | &apos;sawtooth&apos; | &apos;triangle&apos;</td></tr>
 							</tbody>
 						</table>

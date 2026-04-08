@@ -6,6 +6,15 @@ import type { FloodEffect } from "@liiift-studio/floodtext"
 
 const SAMPLE = `A wave washes through the body copy — character by character. Weight surges and falls, oblique angles tilt and recover, opacity pulses through the sentence. Not line by line, not word by word: every individual letterform sits at its own moment in the curve. The effect ranges from barely-perceptible texture at low amplitude to full expressive transformation at high. Density controls how many cycles are visible across the paragraph at once. Period controls how fast the wave moves. The waveShape changes the character of the motion.`
 
+type Direction = 'diagonal-down' | 'diagonal-up' | 'right' | 'left'
+
+const DIRECTION_LABELS: Record<Direction, string> = {
+	'diagonal-down': '↘',
+	'diagonal-up':   '↗',
+	'right':         '→',
+	'left':          '←',
+}
+
 function Slider({ label, value, min, max, step, fmt, onChange }: { label: string; value: number; min: number; max: number; step: number; fmt?: (v: number) => string; onChange: (v: number) => void }) {
 	return (
 		<div className="flex flex-col gap-1">
@@ -42,20 +51,27 @@ function BeforeAfterToggle({ active, onClick }: { active: boolean; onClick: () =
 	)
 }
 
-/** Amplitude defaults and slider ranges per style type */
-const STYLE_CONFIG: Record<FloodEffect, { default: number; min: number; max: number; step: number; unit: string }> = {
+/** Amplitude defaults and slider ranges per effect type */
+const EFFECT_CONFIG: Record<FloodEffect, { default: number; min: number; max: number; step: number; unit: string }> = {
 	wght:    { default: 200, min: 10,  max: 400, step: 10,   unit: 'wght units' },
 	wdth:    { default: 20,  min: 1,   max: 50,  step: 1,    unit: 'wdth units' },
 	oblique: { default: 15,  min: 1,   max: 30,  step: 1,    unit: 'deg'        },
 	opacity: { default: 0.3, min: 0.1, max: 0.7, step: 0.05, unit: ''           },
 }
 
+const DIRECTION_DESCRIPTION: Record<Direction, string> = {
+	'diagonal-down': 'top-left to bottom-right',
+	'diagonal-up':   'bottom-left to top-right',
+	'right':         'left to right',
+	'left':          'right to left',
+}
+
 export default function Demo() {
 	const [effect, setEffect] = useState<FloodEffect>('wght')
-	const [amplitude, setAmplitude] = useState(STYLE_CONFIG.wght.default)
+	const [amplitude, setAmplitude] = useState(EFFECT_CONFIG.wght.default)
 	const [period, setPeriod] = useState(4)
-	const [density, setDensity] = useState(1)
-	const [direction, setDirection] = useState<'right' | 'left'>('right')
+	const [density, setDensity] = useState(2)
+	const [direction, setDirection] = useState<Direction>('diagonal-down')
 	const [waveShape, setWaveShape] = useState<'sine' | 'sawtooth' | 'triangle'>('sine')
 	const [beforeAfter, setComparing] = useState(false)
 
@@ -71,17 +87,17 @@ export default function Demo() {
 
 	function handleEffectChange(v: FloodEffect) {
 		setEffect(v)
-		setAmplitude(STYLE_CONFIG[v].default)
+		setAmplitude(EFFECT_CONFIG[v].default)
 	}
 
-	const cfg = STYLE_CONFIG[effect]
+	const cfg = EFFECT_CONFIG[effect]
 
 	return (
 		<div className="w-full" style={{ overflow: 'hidden' }}>
 			<div className="grid grid-cols-3 gap-6 mb-6">
 				<Slider label={`Amplitude${cfg.unit ? ` (${cfg.unit})` : ''}`} value={amplitude} min={cfg.min} max={cfg.max} step={cfg.step} fmt={cfg.step < 1 ? v => v.toFixed(2) : undefined} onChange={setAmplitude} />
 				<Slider label="Period (s)" value={period} min={1} max={12} step={0.5} onChange={setPeriod} />
-				<Slider label="Density" value={density} min={0.5} max={4} step={0.5} onChange={setDensity} />
+				<Slider label="Density" value={density} min={0.5} max={5} step={0.5} onChange={setDensity} />
 			</div>
 			<div className="flex flex-wrap items-center gap-3 mb-8">
 				<span className="text-xs uppercase tracking-widest opacity-50">Effect</span>
@@ -93,8 +109,8 @@ export default function Demo() {
 					<button key={v} onClick={() => setWaveShape(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: waveShape === v ? 1 : 0.5, background: waveShape === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Dir</span>
-				{(['right', 'left'] as const).map(v => (
-					<button key={v} onClick={() => setDirection(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+				{(['diagonal-down', 'diagonal-up', 'right', 'left'] as const).map(v => (
+					<button key={v} onClick={() => setDirection(v)} title={DIRECTION_DESCRIPTION[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>{DIRECTION_LABELS[v]}</button>
 				))}
 			</div>
 			<div className="relative pb-8">
@@ -106,7 +122,7 @@ export default function Demo() {
 				)}
 				<BeforeAfterToggle active={beforeAfter} onClick={() => setComparing(v => !v)} />
 			</div>
-			<p className="text-xs opacity-50 italic mt-6">A {waveShape} wave traveling {direction === 'right' ? 'left to right' : 'right to left'} through {SAMPLE.replace(/\s/g, '').length} characters — ±{amplitude}{cfg.unit ? ' ' + cfg.unit : ''} on {effect}, density {density}, period {period}s.</p>
+			<p className="text-xs opacity-50 italic mt-6">A {waveShape} wave traveling {DIRECTION_DESCRIPTION[direction]} through {SAMPLE.replace(/\s/g, '').length} characters — ±{amplitude}{cfg.unit ? ' ' + cfg.unit : ''} on {effect}, density {density}, period {period}s.</p>
 		</div>
 	)
 }

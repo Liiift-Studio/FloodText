@@ -155,6 +155,53 @@ function applyEffectValue(
 }
 
 /**
+ * Compute a normalised [0, 1] position for each character span based on wave direction.
+ * For left/right: position is the sequential character index.
+ * For diagonal directions: position is derived from the span's 2D screen coordinates,
+ * projected onto the wave's travel axis. BCRs are read once before the animation loop.
+ *
+ * @param charSpans - Live character span elements
+ * @param direction - Wave travel direction
+ */
+function computeCharPositions(
+	charSpans: HTMLElement[],
+	direction: NonNullable<FloodTextOptions['direction']>,
+): number[] {
+	const n = charSpans.length
+	if (n === 0) return []
+
+	if (direction === 'right' || direction === 'left') {
+		// Sequential index — no DOM reads needed
+		return charSpans.map((_, i) => (n > 1 ? i / (n - 1) : 0))
+	}
+
+	// Diagonal: read BCRs once (batch reads, no writes — no layout thrash)
+	const rects = charSpans.map((s) => s.getBoundingClientRect())
+	const xs = rects.map((r) => r.left + r.width / 2)
+	const ys = rects.map((r) => r.top + r.height / 2)
+
+	const minX = Math.min(...xs)
+	const maxX = Math.max(...xs)
+	const minY = Math.min(...ys)
+	const maxY = Math.max(...ys)
+	const rangeX = maxX - minX || 1
+	const rangeY = maxY - minY || 1
+
+	return rects.map((_, i) => {
+		const nx = (xs[i] - minX) / rangeX // 0 = leftmost, 1 = rightmost
+		const ny = (ys[i] - minY) / rangeY // 0 = topmost,  1 = bottommost
+
+		if (direction === 'diagonal-down') {
+			// Top-left → bottom-right: project onto (1,1) axis
+			return (nx + ny) / 2
+		} else {
+			// diagonal-up: bottom-left → top-right: project onto (1,-1) axis
+			return (nx + (1 - ny)) / 2
+		}
+	})
+}
+
+/**
  * Start the flood-text animation on an array of character span elements.
  * Returns a stop function — call it to cancel the animation loop.
  *
@@ -172,25 +219,27 @@ export function startFloodText(
 	const amplitude = options.amplitude ?? defaults.amplitude
 	const base      = defaults.base
 	const period    = options.period    ?? 4
-	const density   = options.density   ?? 1
-	const direction = options.direction ?? 'right'
+	const density   = options.density   ?? 2
+	const direction = options.direction ?? 'diagonal-down'
 	const waveShape = options.waveShape ?? 'sine'
 
-	const n         = charSpans.length
 	const speed     = 1 / period // cycles per second
 	const startTime = performance.now()
 	let rafId       = 0
+
+	// Compute per-character spatial positions once before the loop
+	const positions = computeCharPositions(charSpans, direction)
+
+	// For left/diagonal-up: wave travels in the reverse direction along the axis
+	const reversed = direction === 'left' || direction === 'diagonal-up'
 
 	function tick() {
 		const t = (performance.now() - startTime) / 1000
 
 		charSpans.forEach((span, i) => {
-			// Normalised position of this character within the full text [0, 1]
-			const pos = n > 1 ? i / (n - 1) : 0
-
-			// Phase: 'right' → wave travels left-to-right through the text
-			//        'left'  → wave travels right-to-left
-			const phase = direction === 'left'
+			const pos   = positions[i]
+			// Reversed directions: wave peak moves toward lower pos over time
+			const phase = reversed
 				? pos * density + t * speed
 				: pos * density - t * speed
 

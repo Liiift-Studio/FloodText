@@ -13,8 +13,8 @@ export interface FloodTextOptions {
 	period?: number
 	/** Number of wave cycles visible across the full paragraph at once (default: 1) */
 	density?: number
-	/** Wave travel direction through the text (default: 'right') */
-	direction?: 'left' | 'right'
+	/** Wave travel direction through the text (default: 'diagonal-down') */
+	direction?: 'right' | 'left' | 'diagonal-down' | 'diagonal-up'
 	/** Shape of the wave (default: 'sine') */
 	waveShape?: 'sine' | 'sawtooth' | 'triangle'
 }
