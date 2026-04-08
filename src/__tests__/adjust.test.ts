@@ -184,4 +184,59 @@ describe('flood-text', () => {
 			}
 		})
 	})
+
+	// 10. direction:'up' works without throwing and produces line spans
+	it('direction up works without throwing', () => {
+		const el = makeElement('alpha beta gamma delta epsilon zeta eta theta iota kappa')
+		const original = getCleanHTML(el)
+		const lineSpans = applyFloodText(el, original, { direction: 'up' })
+		expect(lineSpans.length).toBeGreaterThan(0)
+		const stop = startFloodText(lineSpans, { direction: 'up' })
+		expect(typeof stop).toBe('function')
+		stop()
+	})
+
+	// 11. getCleanHTML after apply strips all ft- class names
+	it('getCleanHTML after apply strips all injected markup', () => {
+		const el = makeElement('one two three four five six seven eight nine ten')
+		const original = getCleanHTML(el)
+		applyFloodText(el, original, {})
+		const cleaned = getCleanHTML(el)
+		expect(cleaned).not.toContain(FLOOD_TEXT_CLASSES.line)
+		expect(cleaned).not.toContain(FLOOD_TEXT_CLASSES.word)
+	})
+
+	// 12. Applying twice from same original gives same line count
+	// (Re-mock between applies so the BCR word counter resets to 0)
+	it('applying twice from same original gives same line count', () => {
+		const el = makeElement('alpha beta gamma delta epsilon zeta eta theta iota kappa')
+		const original = getCleanHTML(el)
+		applyFloodText(el, original, {})
+		const count1 = el.querySelectorAll(`.${FLOOD_TEXT_CLASSES.line}`).length
+		// Reset measurement mock so word BCR counter starts from 0 again
+		mockMeasurement()
+		applyFloodText(el, original, {})
+		const count2 = el.querySelectorAll(`.${FLOOD_TEXT_CLASSES.line}`).length
+		expect(count2).toBe(count1)
+	})
+
+	// 13. computeWave: sine at phase 0 returns 0
+	it('computeWave sine at phase 0 returns 0', () => {
+		expect(computeWave(0, 'sine')).toBeCloseTo(0)
+	})
+
+	// 14. computeWave: sine at phase 0.25 returns 1
+	it('computeWave sine at phase 0.25 returns 1', () => {
+		expect(computeWave(0.25, 'sine')).toBeCloseTo(1)
+	})
+
+	// 15. waveShape:'triangle' never exceeds [-1, 1]
+	it('waveShape triangle stays within [-1, 1]', () => {
+		const phases = [0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 0.9, 1.0, 1.5, -0.5]
+		for (const p of phases) {
+			const v = computeWave(p, 'triangle')
+			expect(v).toBeGreaterThanOrEqual(-1)
+			expect(v).toBeLessThanOrEqual(1)
+		}
+	})
 })
