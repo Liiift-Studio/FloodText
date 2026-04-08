@@ -21,6 +21,7 @@ export default function Demo() {
 	const [axis, setAxis] = useState<'wdth' | 'wght'>('wdth')
 	const [waveShape, setWaveShape] = useState<'sine' | 'sawtooth' | 'triangle'>('sine')
 	const [direction, setDirection] = useState<'down' | 'up'>('down')
+	const [comparing, setComparing] = useState(false)
 
 	const dAmplitude = useDeferredValue(amplitude)
 	const dPeriod = useDeferredValue(period)
@@ -50,19 +51,18 @@ export default function Demo() {
 				{(['down', 'up'] as const).map(v => (
 					<button key={v} onClick={() => setDirection(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
+				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Compare</span>
+				<button onClick={() => setComparing(v => !v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: comparing ? 1 : 0.5, background: comparing ? 'var(--btn-bg)' : 'transparent' }}>without</button>
 			</div>
-			<FloodText axis={axis} amplitude={dAmplitude} period={dPeriod} waveShape={waveShape} direction={direction} style={sampleStyle}>
-				{SAMPLE}
-			</FloodText>
+			<div className="relative">
+				<FloodText axis={axis} amplitude={dAmplitude} period={dPeriod} waveShape={waveShape} direction={direction} style={sampleStyle}>
+					{SAMPLE}
+				</FloodText>
+				{comparing && (
+					<p aria-hidden style={{ ...sampleStyle, position: 'absolute', top: 0, left: 0, width: '100%', margin: 0, opacity: 0.25, pointerEvents: 'none' }}>{SAMPLE}</p>
+				)}
+			</div>
 			<p className="text-xs opacity-50 italic mt-6">A {waveShape} wave, {direction === 'down' ? 'traveling top to bottom' : 'traveling bottom to top'}, ±{amplitude} on the {axis} axis every {period}s.</p>
-			<div className="flex justify-end mt-8">
-				<div className="w-72 flex flex-col gap-2">
-					<span className="text-xs uppercase tracking-widest opacity-50">without</span>
-					<div className="rounded-lg p-3" style={{ background: "rgba(0,0,0,0.15)" }}>
-						<p style={{ ...sampleStyle, fontSize: "0.7rem", lineHeight: "1.8" }} className="opacity-60">{SAMPLE}</p>
-					</div>
-				</div>
-			</div>
 		</div>
 	)
 }
