@@ -2,21 +2,21 @@ import type { Metadata } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-	title: "Axis Tide — Ambient variable font wave animation",
+	title: "Flood Text — Per-character style wave animation",
 	icons: { icon: "/icon.svg", shortcut: "/icon.svg", apple: "/icon.svg" },
-	description: "Axis Tide sends a slow wave through a paragraph, modulating any variable font axis line by line. An ambient animation that gives text a breathing, living quality.",
-	keywords: ["axis tide", "variable font animation", "wave animation", "typography", "TypeScript", "npm"],
+	description: "Flood Text sends a wave through body copy character by character — modulating weight, width, oblique angle, or opacity as it passes. Every letterform sits at its own moment in the curve.",
+	keywords: ["flood text", "per-character animation", "variable font animation", "wave animation", "typography", "TypeScript", "npm"],
 	openGraph: {
-		title: "Axis Tide — Ambient variable font wave animation",
-		description: "A slow wave travels through a paragraph, modulating any variable font axis line by line.",
+		title: "Flood Text — Per-character style wave animation",
+		description: "A wave washes through body copy character by character — modulating weight, width, oblique, or opacity. Every letterform at its own moment in the curve.",
 		url: "https://floodtext.com",
-		siteName: "Axis Tide",
+		siteName: "Flood Text",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Axis Tide — Ambient variable font wave animation",
-		description: "A slow wave travels through a paragraph, modulating any variable font axis line by line.",
+		title: "Flood Text — Per-character style wave animation",
+		description: "A wave washes through body copy character by character — modulating weight, width, oblique, or opacity. Every letterform at its own moment in the curve.",
 	},
 	metadataBase: new URL("https://floodtext.com"),
 }
