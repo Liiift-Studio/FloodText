@@ -1,58 +1,23 @@
-# axis-tide
+# Flood Text
 
-> Slow ambient wave animation of variable font axes across paragraph lines — the paragraph breathes in weight and width
+**[floodtext.com](https://floodtext.com)** · [npm](https://www.npmjs.com/package/@liiift-studio/floodtext) · [GitHub](https://github.com/Liiift-Studio/FloodText)
 
-## Concept
-
-A wdth or wght value drifts across lines in a slow sine wave. Lines near the crest are slightly wider/heavier, near the trough slightly narrower/lighter. The wave moves up or down the paragraph over 3–8 seconds. Total gray value stays constant (deltas cancel across the paragraph). The texture lives — axis-rhythm made temporal.
+---
 
 ## Install
 
 ```bash
-npm install axis-tide
+npm install @liiift-studio/floodtext
 ```
 
-## Usage
-
-### React
-
-```tsx
-import { AxisTideText } from 'axis-tide'
-
-<AxisTideText>
-  Your paragraph text here.
-</AxisTideText>
-```
-
-### Vanilla JS
-
-```ts
-import { applyAxisTide, getCleanHTML } from 'axis-tide'
-
-const el = document.querySelector('p')
-const original = getCleanHTML(el)
-applyAxisTide(el, original, { /* options */ })
-```
-
-## Options
-
-| Option | Description |
-|--------|-------------|
-| `axis` | 'wdth' | 'wght' | string |
-| `amplitude` | axis units, e.g. 5 for wdth |
-| `period` | seconds per full cycle, default 4 |
-| `direction` | 'up' | 'down' |
-| `waveShape` | 'sine' | 'sawtooth' | 'triangle' |
-
-## Development
-
-```bash
-npm install
-npm test
-npm run build
-```
+See [floodtext.com](https://floodtext.com) for full API docs and a live demo.
 
 ---
 
-Part of the [Liiift Studio](https://liiift.studio) typography tools family.
-See also: [Ragtooth](https://ragtooth.liiift.studio)
+## Dev notes
+
+### `next` in root devDependencies
+
+`package.json` at the repo root lists `next` as a devDependency. This is a **Vercel detection workaround** — not a real dependency of the npm package. Vercel's build system inspects the root `package.json` to detect the framework; without `next` present it falls back to a static build and skips the Next.js pipeline, breaking the `/site` subdirectory deploy.
+
+The package itself has zero runtime dependencies. Do not remove this entry.

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background -->
+  <rect width="64" height="64" rx="14" fill="hsl(200,55%,10%)"/>
+
+  <!-- Text lines flooding a circular container — all lines fill to its edge -->
+  <defs>
+    <clipPath id="flood">
+      <circle cx="32" cy="36" r="22"/>
+    </clipPath>
+  </defs>
+
+  <!-- Unclipped top line — rag/normal state before flooding -->
+  <rect x="9" y="10" width="32" height="7" rx="3.5" fill="#f0ece3" opacity="0.4"/>
+
+  <!-- Lines clipped to circle — flooded into shape -->
+  <g clip-path="url(#flood)">
+    <rect x="0" y="21" width="64" height="7" rx="3.5" fill="#f0ece3"/>
+    <rect x="0" y="32" width="64" height="7" rx="3.5" fill="#f0ece3"/>
+    <rect x="0" y="43" width="64" height="7" rx="3.5" fill="#f0ece3"/>
+    <rect x="0" y="54" width="64" height="7" rx="3.5" fill="#f0ece3"/>
+  </g>
+</svg>
