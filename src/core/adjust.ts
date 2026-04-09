@@ -292,7 +292,11 @@ export function startFloodText(
 	const waveShape = options.waveShape ?? 'sine'
 
 	const speed     = 1 / period // cycles per second
-	const startTime = performance.now()
+	// elapsed tracks total animation time, excluding time the tab was hidden.
+	// Without this, performance.now() jumps forward when a hidden tab becomes visible
+	// again, causing the wave phase to teleport instead of continuing smoothly.
+	let elapsed     = 0
+	let lastTick    = performance.now()
 	let rafId       = 0
 
 	// Compute per-character spatial positions once before the loop
@@ -307,7 +311,14 @@ export function startFloodText(
 	}
 
 	function tick() {
-		const t = (performance.now() - startTime) / 1000
+		const now = performance.now()
+		// Only advance elapsed when the tab is visible — document.hidden is true when
+		// the tab is in the background and rAF has been paused by the browser.
+		if (!document.hidden) {
+			elapsed += (now - lastTick) / 1000
+		}
+		lastTick = now
+		const t = elapsed
 
 		charSpans.forEach((span, i) => {
 			const pos   = positions[i]
