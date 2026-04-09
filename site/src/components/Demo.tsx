@@ -5,9 +5,9 @@ import { FloodText } from "@liiift-studio/floodtext"
 import type { FloodEffect } from "@liiift-studio/floodtext"
 
 const PARAGRAPHS = [
-	`A wave washes through the body copy — character by character. Weight surges and falls, oblique angles tilt and recover, opacity pulses through the sentence. Not line by line, not word by word: every individual letterform sits at its own moment in the curve.`,
-	`The effect ranges from barely-perceptible texture at low amplitude to full expressive transformation at high. Density controls how many cycles are visible across the paragraph at once. Period controls how fast the wave moves.`,
-	`The waveShape changes the character of the motion: sine is smooth and continuous, sawtooth is sudden and mechanical, triangle is linear and even. Layer multiple effects together to build compound transformations no CSS property can express.`,
+	`A wave washes through the paragraph — not line by line, not word by word, but character by character. Every letterform sits at its own position in the curve: weight surges as the wave crests and falls as it troughs, oblique angles tilt and recover, opacity breathes through each glyph in sequence. The text is the same, but it is no longer still.`,
+	`CSS applies properties to elements, not to individual characters. Font variation settings, opacity, transforms — all or nothing, the entire block at once. Flood Text works around this by wrapping each visible character in its own span, evaluating the wave function at that character's normalised position, and writing the result as an inline style. Whitespace is left as bare text nodes and never touched — no layout impact, no reflow.`,
+	`At low amplitude the effect is texture: a subtle restlessness the reader feels before they name it, like the slight variation in hand-set type. At high amplitude it becomes transformation — weight swinging from hairline to black, letters tilting into italics and back, the whole paragraph in motion. Density controls how many wave cycles are visible at once; period controls the tempo. Layer wght with oblique, or opacity with wdth, and the motion compounds into something no single CSS property could produce.`,
 ]
 const SAMPLE = PARAGRAPHS.join(' ')
 
