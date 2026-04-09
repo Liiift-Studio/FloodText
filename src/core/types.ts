@@ -1,26 +1,61 @@
 // floodText/src/core/types.ts — types and class constants
 
 /** Style effect driven by the per-character wave */
-export type FloodEffect = 'wght' | 'wdth' | 'oblique' | 'opacity' | 'rotation' | 'blur'
+export type FloodEffect = 'wght' | 'wdth' | 'oblique' | 'opacity' | 'rotation' | 'blur' | 'size'
+
+/**
+ * A custom CSS property to animate on each character, driven by the same wave
+ * as the built-in effects. Works with any CSS property or custom property (CSS variable).
+ *
+ * @example
+ * // Animate letter-spacing per character
+ * { property: 'letter-spacing', base: 0, amplitude: 0.05, unit: 'em' }
+ *
+ * @example
+ * // Animate a CSS custom property (e.g. for a variable font axis via CSS vars)
+ * { property: '--wdth', base: 100, amplitude: 20, unit: '' }
+ *
+ * @example
+ * // Clamp opacity to a safe range
+ * { property: 'opacity', base: 0.8, amplitude: 0.2, unit: '', clamp: [0, 1] }
+ */
+export interface FloodProperty {
+	/** Any valid CSS property name or custom property (e.g. 'letter-spacing', '--my-axis') */
+	property: string
+	/** Neutral value around which the wave oscillates */
+	base: number
+	/** Peak deviation from base */
+	amplitude: number
+	/** CSS unit appended to the computed value (e.g. 'em', 'px', 'deg', '%'). Default: '' */
+	unit?: string
+	/** Optional [min, max] clamp applied after wave calculation */
+	clamp?: [number, number]
+}
 
 /** Options controlling the flood-text character wave animation */
 export interface FloodTextOptions {
 	/**
-	 * Visual effect(s) to animate per character. Pass an array to layer multiple effects simultaneously.
+	 * Built-in effect(s) to animate per character. Pass an array to layer multiple effects simultaneously.
 	 * (default: 'wght')
 	 */
 	effect?: FloodEffect | FloodEffect[]
 	/**
 	 * Peak deviation from the neutral value, in style-specific units.
-	 * Only used when a single effect is active — for multiple effects use `amplitudes`.
+	 * Only used when a single built-in effect is active — for multiple effects use `amplitudes`.
 	 * (default: auto per effect)
 	 */
 	amplitude?: number
 	/**
-	 * Per-effect amplitude overrides when layering multiple effects.
-	 * Defaults: wght 200, wdth 20, oblique 15deg, opacity 0.3, rotation 15deg, blur 2px.
+	 * Per-effect amplitude overrides when layering multiple built-in effects.
+	 * Defaults: wght 200, wdth 20, oblique 15deg, opacity 0.3, rotation 15deg, blur 2px, size 0.15em.
 	 */
 	amplitudes?: Partial<Record<FloodEffect, number>>
+	/**
+	 * Custom CSS properties to animate on each character, driven by the same wave.
+	 * Can be used alongside `effect` or as the sole animation source.
+	 * Uses `element.style.setProperty()` internally — works for both regular properties and CSS variables.
+	 */
+	properties?: FloodProperty[]
 	/** Seconds per full wave cycle (default: 4) */
 	period?: number
 	/** Number of wave cycles visible across the full paragraph at once (default: 2) */

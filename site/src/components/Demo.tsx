@@ -53,15 +53,16 @@ function BeforeAfterToggle({ active, onClick }: { active: boolean; onClick: () =
 
 /** Amplitude defaults and slider ranges per effect type */
 const EFFECT_CONFIG: Record<FloodEffect, { default: number; min: number; max: number; step: number; unit: string }> = {
-	wght:     { default: 200, min: 10,  max: 400, step: 10,   unit: 'wght units' },
-	wdth:     { default: 20,  min: 1,   max: 50,  step: 1,    unit: 'wdth units' },
-	oblique:  { default: 15,  min: 1,   max: 30,  step: 1,    unit: 'deg'        },
-	opacity:  { default: 0.3, min: 0.1, max: 0.7, step: 0.05, unit: ''           },
-	rotation: { default: 15,  min: 1,   max: 45,  step: 1,    unit: 'deg'        },
-	blur:     { default: 2,   min: 0.1, max: 8,   step: 0.1,  unit: 'px'         },
+	wght:     { default: 200,  min: 10,   max: 400,  step: 10,   unit: 'wght units' },
+	wdth:     { default: 20,   min: 1,    max: 50,   step: 1,    unit: 'wdth units' },
+	oblique:  { default: 15,   min: 1,    max: 30,   step: 1,    unit: 'deg'        },
+	opacity:  { default: 0.3,  min: 0.1,  max: 0.7,  step: 0.05, unit: ''           },
+	rotation: { default: 15,   min: 1,    max: 45,   step: 1,    unit: 'deg'        },
+	blur:     { default: 2,    min: 0.1,  max: 8,    step: 0.1,  unit: 'px'         },
+	size:     { default: 0.15, min: 0.02, max: 0.5,  step: 0.01, unit: 'em'         },
 }
 
-const ALL_EFFECTS: FloodEffect[] = ['wght', 'wdth', 'oblique', 'opacity', 'rotation', 'blur']
+const ALL_EFFECTS: FloodEffect[] = ['wght', 'wdth', 'oblique', 'opacity', 'rotation', 'blur', 'size']
 
 const DIRECTION_DESCRIPTION: Record<Direction, string> = {
 	'diagonal-down': 'top-left to bottom-right',

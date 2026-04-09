@@ -1,14 +1,15 @@
 // floodText/src/core/adjust.ts — framework-agnostic DOM algorithm and per-character animation
-import { FLOOD_TEXT_CLASSES, type FloodTextOptions, type FloodEffect } from './types'
+import { FLOOD_TEXT_CLASSES, type FloodTextOptions, type FloodEffect, type FloodProperty } from './types'
 
 /** Neutral base values and default amplitudes per effect type */
 const EFFECT_DEFAULTS: Record<FloodEffect, { base: number; amplitude: number }> = {
-	wght:     { base: 400, amplitude: 200 },
-	wdth:     { base: 100, amplitude: 20  },
-	oblique:  { base: 0,   amplitude: 15  },
-	opacity:  { base: 0.7, amplitude: 0.3 },
-	rotation: { base: 0,   amplitude: 15  },
-	blur:     { base: 0,   amplitude: 2   },
+	wght:     { base: 400, amplitude: 200  },
+	wdth:     { base: 100, amplitude: 20   },
+	oblique:  { base: 0,   amplitude: 15   },
+	opacity:  { base: 0.7, amplitude: 0.3  },
+	rotation: { base: 0,   amplitude: 15   },
+	blur:     { base: 0,   amplitude: 2    },
+	size:     { base: 1,   amplitude: 0.15 },
 }
 
 /**
@@ -128,24 +129,29 @@ export function computeWave(
 }
 
 /**
- * Apply all active effects to a single character span for the current wave sample.
- * wght and wdth are merged into a single fontVariationSettings declaration.
- * rotation uses transform — callers must ensure spans are display:inline-block.
- * blur uses filter.
+ * Apply all active built-in effects and custom properties to a character span.
+ * wght and wdth are merged into a single fontVariationSettings declaration so
+ * they do not overwrite each other when both are active.
+ * rotation uses CSS transform — callers must ensure spans are display:inline-block first.
+ * size uses font-size in em units.
+ * Custom properties are applied via style.setProperty() — works for CSS variables too.
  *
  * @param span         - The character span element to style
- * @param effects      - All active effects to apply simultaneously
+ * @param effects      - Active built-in effects
+ * @param customProps  - Active custom property definitions
  * @param wave         - Wave sample in [-1, 1]
  * @param amplitudeMap - Per-effect amplitude overrides (falls back to EFFECT_DEFAULTS)
  */
 function applyEffectsToSpan(
 	span: HTMLElement,
 	effects: FloodEffect[],
+	customProps: FloodProperty[],
 	wave: number,
 	amplitudeMap: Partial<Record<FloodEffect, number>>,
 ): void {
 	const fvsParts: string[] = []
 
+	// --- Built-in effects ---
 	for (const effect of effects) {
 		const { base, amplitude } = EFFECT_DEFAULTS[effect]
 		const amp = amplitudeMap[effect] ?? amplitude
@@ -170,12 +176,27 @@ function applyEffectsToSpan(
 			case 'blur':
 				span.style.filter = `blur(${Math.max(0, value).toFixed(2)}px)`
 				break
+			case 'size':
+				// font-size in em — relative to parent element's font size
+				span.style.fontSize = `${Math.max(0.1, value).toFixed(4)}em`
+				break
 		}
 	}
 
-	// Merge wght + wdth into a single declaration so neither overwrites the other
+	// Merge wght + wdth into a single declaration so they don't overwrite each other
 	if (fvsParts.length > 0) {
 		span.style.fontVariationSettings = fvsParts.join(', ')
+	}
+
+	// --- Custom CSS properties ---
+	for (const prop of customProps) {
+		const raw = prop.base + prop.amplitude * wave
+		const clamped = prop.clamp
+			? Math.max(prop.clamp[0], Math.min(prop.clamp[1], raw))
+			: raw
+		const unit = prop.unit ?? ''
+		// style.setProperty works for both regular properties and CSS custom properties
+		span.style.setProperty(prop.property, `${clamped}${unit}`)
 	}
 }
 
@@ -230,12 +251,14 @@ function computeCharPositions(
  * Start the flood-text animation on an array of character span elements.
  * Returns a stop function — call it to cancel the animation loop.
  *
- * Multiple effects are layered on the same wave so they stay in phase with each other.
- * Use `amplitudes` to control per-effect intensity when layering.
+ * Built-in effects and custom properties share the same wave — they stay in phase.
+ * Use `amplitudes` to control per-effect intensity when layering built-in effects.
+ * Use `properties` to animate any CSS property or CSS custom property.
  *
  * Note: the `rotation` effect requires character spans to be display:inline-block
  * (CSS transform does not apply to non-replaced inline elements). This is set
- * automatically before the animation loop starts.
+ * automatically. The `size` effect causes layout recalculation each frame because
+ * font-size changes affect text flow — use at low amplitude to minimise reflow cost.
  *
  * @param charSpans - Array of .ft-char span elements from applyFloodText
  * @param options   - FloodTextOptions (merged with defaults)
@@ -247,14 +270,16 @@ export function startFloodText(
 	if (charSpans.length === 0) return () => {}
 
 	// Normalise effect input to an array
-	const effectInput = options.effect ?? 'wght'
+	const effectInput  = options.effect ?? 'wght'
 	const effects: FloodEffect[] = Array.isArray(effectInput) ? effectInput : [effectInput]
+	const customProps: FloodProperty[] = options.properties ?? []
 
 	// Build per-effect amplitude map
-	// Single-effect: `amplitude` option is used directly; multi-effect: fall back to per-effect defaults
+	// Single built-in effect: `amplitude` option is used directly
+	// Multiple effects: fall back to per-effect defaults, overridden by `amplitudes`
 	const amplitudeMap: Partial<Record<FloodEffect, number>> = {}
 	for (const eff of effects) {
-		if (effects.length === 1 && options.amplitude !== undefined) {
+		if (effects.length === 1 && customProps.length === 0 && options.amplitude !== undefined) {
 			amplitudeMap[eff] = options.amplitude
 		} else {
 			amplitudeMap[eff] = options.amplitudes?.[eff] ?? EFFECT_DEFAULTS[eff].amplitude
@@ -292,7 +317,7 @@ export function startFloodText(
 				: pos * density - t * speed
 
 			const wave = computeWave(phase, waveShape)
-			applyEffectsToSpan(span, effects, wave, amplitudeMap)
+			applyEffectsToSpan(span, effects, customProps, wave, amplitudeMap)
 		})
 
 		rafId = requestAnimationFrame(tick)
