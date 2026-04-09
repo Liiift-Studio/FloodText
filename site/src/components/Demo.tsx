@@ -88,6 +88,7 @@ export default function Demo() {
 		fontFamily: "var(--font-merriweather), serif",
 		fontSize: "1.125rem",
 		lineHeight: "1.8",
+		fontVariationSettings: '"wght" 300, "opsz" 18, "wdth" 100',
 	}
 
 	const singleEffect = activeEffects.size === 1 ? [...activeEffects][0] : null
