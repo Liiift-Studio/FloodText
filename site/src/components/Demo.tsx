@@ -114,7 +114,7 @@ export default function Demo() {
 		singleEffect ?? [...activeEffects]
 
 	return (
-		<div className="w-full" style={{ overflow: 'hidden' }}>
+		<div className="w-full">
 			<div className="grid grid-cols-3 gap-6 mb-6">
 				{cfg ? (
 					<Slider label={`Amplitude${cfg.unit ? ` (${cfg.unit})` : ''}`} value={amplitude} min={cfg.min} max={cfg.max} step={cfg.step} fmt={cfg.step < 1 ? v => v.toFixed(2) : undefined} onChange={setAmplitude} />
