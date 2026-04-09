@@ -18,7 +18,11 @@ export function useFloodText(options: FloodTextOptions) {
 	const optionsRef      = useRef(options)
 	optionsRef.current = options
 
-	const { effect, amplitude, period, density, direction, waveShape } = options
+	const { effect, amplitude, amplitudes, period, density, direction, waveShape } = options
+
+	// Serialize array/object deps to stable strings so the dep array comparison works correctly
+	const effectKey    = Array.isArray(effect) ? effect.join(',') : (effect ?? 'wght')
+	const amplitudesKey = amplitudes ? JSON.stringify(amplitudes) : ''
 
 	const run = useCallback((): (() => void) => {
 		const el = ref.current
@@ -42,7 +46,8 @@ export function useFloodText(options: FloodTextOptions) {
 
 		// Start animation loop and return its stop function
 		return startFloodText(charSpans, optionsRef.current)
-	}, [effect, amplitude, period, density, direction, waveShape])
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [effectKey, amplitude, amplitudesKey, period, density, direction, waveShape])
 
 	useLayoutEffect(() => {
 		let stopAnimation = run()

@@ -53,11 +53,15 @@ function BeforeAfterToggle({ active, onClick }: { active: boolean; onClick: () =
 
 /** Amplitude defaults and slider ranges per effect type */
 const EFFECT_CONFIG: Record<FloodEffect, { default: number; min: number; max: number; step: number; unit: string }> = {
-	wght:    { default: 200, min: 10,  max: 400, step: 10,   unit: 'wght units' },
-	wdth:    { default: 20,  min: 1,   max: 50,  step: 1,    unit: 'wdth units' },
-	oblique: { default: 15,  min: 1,   max: 30,  step: 1,    unit: 'deg'        },
-	opacity: { default: 0.3, min: 0.1, max: 0.7, step: 0.05, unit: ''           },
+	wght:     { default: 200, min: 10,  max: 400, step: 10,   unit: 'wght units' },
+	wdth:     { default: 20,  min: 1,   max: 50,  step: 1,    unit: 'wdth units' },
+	oblique:  { default: 15,  min: 1,   max: 30,  step: 1,    unit: 'deg'        },
+	opacity:  { default: 0.3, min: 0.1, max: 0.7, step: 0.05, unit: ''           },
+	rotation: { default: 15,  min: 1,   max: 45,  step: 1,    unit: 'deg'        },
+	blur:     { default: 2,   min: 0.1, max: 8,   step: 0.1,  unit: 'px'         },
 }
+
+const ALL_EFFECTS: FloodEffect[] = ['wght', 'wdth', 'oblique', 'opacity', 'rotation', 'blur']
 
 const DIRECTION_DESCRIPTION: Record<Direction, string> = {
 	'diagonal-down': 'top-left to bottom-right',
@@ -67,7 +71,7 @@ const DIRECTION_DESCRIPTION: Record<Direction, string> = {
 }
 
 export default function Demo() {
-	const [effect, setEffect] = useState<FloodEffect>('wght')
+	const [activeEffects, setActiveEffects] = useState<Set<FloodEffect>>(new Set(['wght']))
 	const [amplitude, setAmplitude] = useState(EFFECT_CONFIG.wght.default)
 	const [period, setPeriod] = useState(4)
 	const [density, setDensity] = useState(2)
@@ -85,24 +89,46 @@ export default function Demo() {
 		lineHeight: "1.8",
 	}
 
-	function handleEffectChange(v: FloodEffect) {
-		setEffect(v)
-		setAmplitude(EFFECT_CONFIG[v].default)
+	const singleEffect = activeEffects.size === 1 ? [...activeEffects][0] : null
+
+	function handleEffectToggle(v: FloodEffect) {
+		setActiveEffects(prev => {
+			const next = new Set(prev)
+			if (next.has(v)) {
+				// Always keep at least one effect active
+				if (next.size > 1) next.delete(v)
+			} else {
+				next.add(v)
+			}
+			// If switching to single effect, reset amplitude to that effect's default
+			if (next.size === 1) setAmplitude(EFFECT_CONFIG[[...next][0]].default)
+			return next
+		})
 	}
 
-	const cfg = EFFECT_CONFIG[effect]
+	const cfg = singleEffect ? EFFECT_CONFIG[singleEffect] : null
+
+	// Compute the effect prop: single string or array
+	const effectProp: FloodEffect | FloodEffect[] =
+		singleEffect ?? [...activeEffects]
 
 	return (
 		<div className="w-full" style={{ overflow: 'hidden' }}>
 			<div className="grid grid-cols-3 gap-6 mb-6">
-				<Slider label={`Amplitude${cfg.unit ? ` (${cfg.unit})` : ''}`} value={amplitude} min={cfg.min} max={cfg.max} step={cfg.step} fmt={cfg.step < 1 ? v => v.toFixed(2) : undefined} onChange={setAmplitude} />
+				{cfg ? (
+					<Slider label={`Amplitude${cfg.unit ? ` (${cfg.unit})` : ''}`} value={amplitude} min={cfg.min} max={cfg.max} step={cfg.step} fmt={cfg.step < 1 ? v => v.toFixed(2) : undefined} onChange={setAmplitude} />
+				) : (
+					<div className="flex flex-col gap-1 justify-end">
+						<span className="text-xs opacity-40 italic">Default amplitudes per effect</span>
+					</div>
+				)}
 				<Slider label="Period (s)" value={period} min={1} max={12} step={0.5} onChange={setPeriod} />
 				<Slider label="Density" value={density} min={0.5} max={5} step={0.5} onChange={setDensity} />
 			</div>
 			<div className="flex flex-wrap items-center gap-3 mb-8">
 				<span className="text-xs uppercase tracking-widest opacity-50">Effect</span>
-				{(['wght', 'wdth', 'oblique', 'opacity'] as const).map(v => (
-					<button key={v} onClick={() => handleEffectChange(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: effect === v ? 1 : 0.5, background: effect === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+				{ALL_EFFECTS.map(v => (
+					<button key={v} onClick={() => handleEffectToggle(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: activeEffects.has(v) ? 1 : 0.5, background: activeEffects.has(v) ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Wave</span>
 				{(['sine', 'sawtooth', 'triangle'] as const).map(v => (
@@ -114,7 +140,16 @@ export default function Demo() {
 				))}
 			</div>
 			<div className="relative pb-8">
-				<FloodText effect={effect} amplitude={dAmplitude} period={dPeriod} density={dDensity} direction={direction} waveShape={waveShape} as="p" style={sampleStyle}>
+				<FloodText
+					effect={effectProp}
+					amplitude={singleEffect ? dAmplitude : undefined}
+					period={dPeriod}
+					density={dDensity}
+					direction={direction}
+					waveShape={waveShape}
+					as="p"
+					style={sampleStyle}
+				>
 					{SAMPLE}
 				</FloodText>
 				{beforeAfter && (
@@ -122,7 +157,13 @@ export default function Demo() {
 				)}
 				<BeforeAfterToggle active={beforeAfter} onClick={() => setComparing(v => !v)} />
 			</div>
-			<p className="text-xs opacity-50 italic mt-6">A {waveShape} wave traveling {DIRECTION_DESCRIPTION[direction]} through {SAMPLE.replace(/\s/g, '').length} characters — ±{amplitude}{cfg.unit ? ' ' + cfg.unit : ''} on {effect}, density {density}, period {period}s.</p>
+			<p className="text-xs opacity-50 italic mt-6">
+				A {waveShape} wave traveling {DIRECTION_DESCRIPTION[direction]} through {SAMPLE.replace(/\s/g, '').length} characters
+				{singleEffect
+					? ` — ±${amplitude}${cfg?.unit ? ' ' + cfg.unit : ''} on ${singleEffect}`
+					: ` — layering ${[...activeEffects].join(' + ')}`
+				}, density {density}, period {period}s.
+			</p>
 		</div>
 	)
 }

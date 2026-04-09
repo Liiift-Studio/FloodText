@@ -3,10 +3,12 @@ import { FLOOD_TEXT_CLASSES, type FloodTextOptions, type FloodEffect } from './t
 
 /** Neutral base values and default amplitudes per effect type */
 const EFFECT_DEFAULTS: Record<FloodEffect, { base: number; amplitude: number }> = {
-	wght:    { base: 400, amplitude: 200 },
-	wdth:    { base: 100, amplitude: 20  },
-	oblique: { base: 0,   amplitude: 15  },
-	opacity: { base: 0.7, amplitude: 0.3 },
+	wght:     { base: 400, amplitude: 200 },
+	wdth:     { base: 100, amplitude: 20  },
+	oblique:  { base: 0,   amplitude: 15  },
+	opacity:  { base: 0.7, amplitude: 0.3 },
+	rotation: { base: 0,   amplitude: 15  },
+	blur:     { base: 0,   amplitude: 2   },
 }
 
 /**
@@ -126,31 +128,54 @@ export function computeWave(
 }
 
 /**
- * Apply a computed wave value to a character span's style property.
+ * Apply all active effects to a single character span for the current wave sample.
+ * wght and wdth are merged into a single fontVariationSettings declaration.
+ * rotation uses transform — callers must ensure spans are display:inline-block.
+ * blur uses filter.
  *
- * @param span      - The character span element to style
- * @param style     - Style property to drive
- * @param base      - Neutral value around which the wave oscillates
- * @param amplitude - Peak deviation from base
- * @param wave      - Wave sample in [-1, 1]
+ * @param span         - The character span element to style
+ * @param effects      - All active effects to apply simultaneously
+ * @param wave         - Wave sample in [-1, 1]
+ * @param amplitudeMap - Per-effect amplitude overrides (falls back to EFFECT_DEFAULTS)
  */
-function applyEffectValue(
+function applyEffectsToSpan(
 	span: HTMLElement,
-	effect: FloodEffect,
-	base: number,
-	amplitude: number,
+	effects: FloodEffect[],
 	wave: number,
+	amplitudeMap: Partial<Record<FloodEffect, number>>,
 ): void {
-	const value = base + amplitude * wave
+	const fvsParts: string[] = []
 
-	if (effect === 'wght') {
-		span.style.fontVariationSettings = `'wght' ${value.toFixed(1)}`
-	} else if (effect === 'wdth') {
-		span.style.fontVariationSettings = `'wdth' ${value.toFixed(1)}`
-	} else if (effect === 'oblique') {
-		span.style.fontStyle = `oblique ${value.toFixed(1)}deg`
-	} else if (effect === 'opacity') {
-		span.style.opacity = Math.max(0, Math.min(1, value)).toFixed(3)
+	for (const effect of effects) {
+		const { base, amplitude } = EFFECT_DEFAULTS[effect]
+		const amp = amplitudeMap[effect] ?? amplitude
+		const value = base + amp * wave
+
+		switch (effect) {
+			case 'wght':
+				fvsParts.push(`'wght' ${value.toFixed(1)}`)
+				break
+			case 'wdth':
+				fvsParts.push(`'wdth' ${value.toFixed(1)}`)
+				break
+			case 'oblique':
+				span.style.fontStyle = `oblique ${value.toFixed(1)}deg`
+				break
+			case 'opacity':
+				span.style.opacity = Math.max(0, Math.min(1, value)).toFixed(3)
+				break
+			case 'rotation':
+				span.style.transform = `rotate(${value.toFixed(2)}deg)`
+				break
+			case 'blur':
+				span.style.filter = `blur(${Math.max(0, value).toFixed(2)}px)`
+				break
+		}
+	}
+
+	// Merge wght + wdth into a single declaration so neither overwrites the other
+	if (fvsParts.length > 0) {
+		span.style.fontVariationSettings = fvsParts.join(', ')
 	}
 }
 
@@ -205,6 +230,13 @@ function computeCharPositions(
  * Start the flood-text animation on an array of character span elements.
  * Returns a stop function — call it to cancel the animation loop.
  *
+ * Multiple effects are layered on the same wave so they stay in phase with each other.
+ * Use `amplitudes` to control per-effect intensity when layering.
+ *
+ * Note: the `rotation` effect requires character spans to be display:inline-block
+ * (CSS transform does not apply to non-replaced inline elements). This is set
+ * automatically before the animation loop starts.
+ *
  * @param charSpans - Array of .ft-char span elements from applyFloodText
  * @param options   - FloodTextOptions (merged with defaults)
  */
@@ -214,10 +246,21 @@ export function startFloodText(
 ): () => void {
 	if (charSpans.length === 0) return () => {}
 
-	const effect    = options.effect    ?? 'wght'
-	const defaults  = EFFECT_DEFAULTS[effect]
-	const amplitude = options.amplitude ?? defaults.amplitude
-	const base      = defaults.base
+	// Normalise effect input to an array
+	const effectInput = options.effect ?? 'wght'
+	const effects: FloodEffect[] = Array.isArray(effectInput) ? effectInput : [effectInput]
+
+	// Build per-effect amplitude map
+	// Single-effect: `amplitude` option is used directly; multi-effect: fall back to per-effect defaults
+	const amplitudeMap: Partial<Record<FloodEffect, number>> = {}
+	for (const eff of effects) {
+		if (effects.length === 1 && options.amplitude !== undefined) {
+			amplitudeMap[eff] = options.amplitude
+		} else {
+			amplitudeMap[eff] = options.amplitudes?.[eff] ?? EFFECT_DEFAULTS[eff].amplitude
+		}
+	}
+
 	const period    = options.period    ?? 4
 	const density   = options.density   ?? 2
 	const direction = options.direction ?? 'diagonal-down'
@@ -233,6 +276,11 @@ export function startFloodText(
 	// For left/diagonal-up: wave travels in the reverse direction along the axis
 	const reversed = direction === 'left' || direction === 'diagonal-up'
 
+	// rotation uses CSS transform which does not apply to inline elements — set inline-block first
+	if (effects.includes('rotation')) {
+		charSpans.forEach((span) => { span.style.display = 'inline-block' })
+	}
+
 	function tick() {
 		const t = (performance.now() - startTime) / 1000
 
@@ -244,7 +292,7 @@ export function startFloodText(
 				: pos * density - t * speed
 
 			const wave = computeWave(phase, waveShape)
-			applyEffectValue(span, effect, base, amplitude, wave)
+			applyEffectsToSpan(span, effects, wave, amplitudeMap)
 		})
 
 		rafId = requestAnimationFrame(tick)
