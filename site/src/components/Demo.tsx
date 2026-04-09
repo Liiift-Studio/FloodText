@@ -36,7 +36,7 @@ function BeforeAfterToggle({ active, onClick }: { active: boolean; onClick: () =
 				position: 'absolute', bottom: 0, right: 0,
 				width: 32, height: 32, borderRadius: '50%',
 				border: '1px solid currentColor',
-				opacity: active ? 0.8 : 0.25,
+				opacity: active ? 0.8 : 0.45,
 				background: 'transparent',
 				display: 'flex', alignItems: 'center', justifyContent: 'center',
 				cursor: 'pointer', transition: 'opacity 0.15s ease',
