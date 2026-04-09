@@ -129,15 +129,15 @@ export default function Demo() {
 			<div className="flex flex-wrap items-center gap-3 mb-8">
 				<span className="text-xs uppercase tracking-widest opacity-50">Effect</span>
 				{ALL_EFFECTS.map(v => (
-					<button key={v} onClick={() => handleEffectToggle(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: activeEffects.has(v) ? 1 : 0.5, background: activeEffects.has(v) ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+					<button key={v} onClick={() => handleEffectToggle(v)} aria-pressed={activeEffects.has(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: activeEffects.has(v) ? 1 : 0.5, background: activeEffects.has(v) ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Wave</span>
 				{(['sine', 'sawtooth', 'triangle'] as const).map(v => (
-					<button key={v} onClick={() => setWaveShape(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: waveShape === v ? 1 : 0.5, background: waveShape === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+					<button key={v} onClick={() => setWaveShape(v)} aria-pressed={waveShape === v} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: waveShape === v ? 1 : 0.5, background: waveShape === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Dir</span>
 				{(['diagonal-down', 'diagonal-up', 'right', 'left'] as const).map(v => (
-					<button key={v} onClick={() => setDirection(v)} title={DIRECTION_DESCRIPTION[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>{DIRECTION_LABELS[v]}</button>
+					<button key={v} onClick={() => setDirection(v)} aria-pressed={direction === v} aria-label={DIRECTION_DESCRIPTION[v]} title={DIRECTION_DESCRIPTION[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>{DIRECTION_LABELS[v]}</button>
 				))}
 			</div>
 			<div className="relative pb-8">
