@@ -1,7 +1,7 @@
 {
 	"name": "@liiift-studio/floodtext",
-	"version": "0.0.19",
-	"description": "Slow ambient wave animation of variable font axes across paragraph lines \u2014 the paragraph breathes in weight and width",
+	"version": "0.0.20",
+	"description": "Slow ambient wave animation of variable font axes across paragraph lines — the paragraph breathes in weight and width",
 	"type": "module",
 	"main": "dist/index.cjs",
 	"module": "dist/index.js",
