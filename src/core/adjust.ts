@@ -286,7 +286,7 @@ export function startFloodText(
 		}
 	}
 
-	const period    = options.period    ?? 4
+	const period    = Math.max(0.1, options.period ?? 4)  // clamp to prevent Infinity speed
 	const density   = options.density   ?? 2
 	const direction = options.direction ?? 'diagonal-down'
 	const waveShape = options.waveShape ?? 'sine'
