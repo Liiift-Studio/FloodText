@@ -4,7 +4,12 @@ import { useState, useDeferredValue } from "react"
 import { FloodText } from "@liiift-studio/floodtext"
 import type { FloodEffect } from "@liiift-studio/floodtext"
 
-const SAMPLE = `A wave washes through the body copy — character by character. Weight surges and falls, oblique angles tilt and recover, opacity pulses through the sentence. Not line by line, not word by word: every individual letterform sits at its own moment in the curve. The effect ranges from barely-perceptible texture at low amplitude to full expressive transformation at high. Density controls how many cycles are visible across the paragraph at once. Period controls how fast the wave moves. The waveShape changes the character of the motion.`
+const PARAGRAPHS = [
+	`A wave washes through the body copy — character by character. Weight surges and falls, oblique angles tilt and recover, opacity pulses through the sentence. Not line by line, not word by word: every individual letterform sits at its own moment in the curve.`,
+	`The effect ranges from barely-perceptible texture at low amplitude to full expressive transformation at high. Density controls how many cycles are visible across the paragraph at once. Period controls how fast the wave moves.`,
+	`The waveShape changes the character of the motion: sine is smooth and continuous, sawtooth is sudden and mechanical, triangle is linear and even. Layer multiple effects together to build compound transformations no CSS property can express.`,
+]
+const SAMPLE = PARAGRAPHS.join(' ')
 
 type Direction = 'diagonal-down' | 'diagonal-up' | 'right' | 'left'
 
@@ -142,20 +147,29 @@ export default function Demo() {
 				))}
 			</div>
 			<div className="relative pb-8">
-				<FloodText
-					effect={effectProp}
-					amplitude={singleEffect ? dAmplitude : undefined}
-					period={dPeriod}
-					density={dDensity}
-					direction={direction}
-					waveShape={waveShape}
-					as="p"
-					style={sampleStyle}
-				>
-					{SAMPLE}
-				</FloodText>
+				<div className="flex flex-col gap-8">
+					{PARAGRAPHS.map((para, i) => (
+						<FloodText
+							key={i}
+							effect={effectProp}
+							amplitude={singleEffect ? dAmplitude : undefined}
+							period={dPeriod}
+							density={dDensity}
+							direction={direction}
+							waveShape={waveShape}
+							as="p"
+							style={sampleStyle}
+						>
+							{para}
+						</FloodText>
+					))}
+				</div>
 				{beforeAfter && (
-					<p aria-hidden style={{ ...sampleStyle, position: 'absolute', top: 0, left: 0, width: '100%', margin: 0, opacity: 0.25, pointerEvents: 'none' }}>{SAMPLE}</p>
+					<div aria-hidden style={{ position: 'absolute', top: 0, left: 0, width: '100%', pointerEvents: 'none', opacity: 0.25 }} className="flex flex-col gap-8">
+						{PARAGRAPHS.map((para, i) => (
+							<p key={i} style={{ ...sampleStyle, margin: 0 }}>{para}</p>
+						))}
+					</div>
 				)}
 				<BeforeAfterToggle active={beforeAfter} onClick={() => setComparing(v => !v)} />
 			</div>
