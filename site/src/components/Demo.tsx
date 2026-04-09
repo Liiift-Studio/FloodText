@@ -158,7 +158,7 @@ export default function Demo() {
 				)}
 				<BeforeAfterToggle active={beforeAfter} onClick={() => setComparing(v => !v)} />
 			</div>
-			<p className="text-xs opacity-50 italic mt-6">
+			<p className="text-xs opacity-50 italic mt-8" style={{ lineHeight: "1.8" }}>
 				A {waveShape} wave traveling {DIRECTION_DESCRIPTION[direction]} through {SAMPLE.replace(/\s/g, '').length} characters
 				{singleEffect
 					? ` — ±${amplitude}${cfg?.unit ? ' ' + cfg.unit : ''} on ${singleEffect}`
