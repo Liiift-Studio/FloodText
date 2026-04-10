@@ -202,9 +202,17 @@ function applyEffectsToSpan(
 
 /**
  * Compute a normalised [0, 1] position for each character span based on wave direction.
- * For left/right: position is the sequential character index.
- * For diagonal directions: position is derived from the span's 2D screen coordinates,
- * projected onto the wave's travel axis. BCRs are read once before the animation loop.
+ * All directions use screen coordinates from getBoundingClientRect — read once as a
+ * single batch before the animation loop begins.
+ *
+ * right/left:     position = character's x-coordinate within the text bounds.
+ *                 Characters at the same horizontal column across lines are in phase,
+ *                 so the wave sweeps as vertical stripes — not in reading order.
+ *                 Previously this used sequential character index, which caused
+ *                 each line to start the wave mid-cycle relative to the line above.
+ *
+ * diagonal-down:  top-left → bottom-right projection — (nx + ny) / 2
+ * diagonal-up:    bottom-left → top-right projection — (nx + (1 - ny)) / 2
  *
  * @param charSpans - Live character span elements
  * @param direction - Wave travel direction
@@ -216,12 +224,7 @@ function computeCharPositions(
 	const n = charSpans.length
 	if (n === 0) return []
 
-	if (direction === 'right' || direction === 'left') {
-		// Sequential index — no DOM reads needed
-		return charSpans.map((_, i) => (n > 1 ? i / (n - 1) : 0))
-	}
-
-	// Diagonal: read BCRs once (batch reads, no writes — no layout thrash)
+	// Batch-read all BCRs before any writes (no layout thrash)
 	const rects = charSpans.map((s) => s.getBoundingClientRect())
 	const xs = rects.map((r) => r.left + r.width / 2)
 	const ys = rects.map((r) => r.top + r.height / 2)
@@ -237,13 +240,17 @@ function computeCharPositions(
 		const nx = (xs[i] - minX) / rangeX // 0 = leftmost, 1 = rightmost
 		const ny = (ys[i] - minY) / rangeY // 0 = topmost,  1 = bottommost
 
+		if (direction === 'right' || direction === 'left') {
+			// Spatial x position: characters at the same column across lines are in phase.
+			// The reversed flag in startFloodText handles the left/right travel direction.
+			return nx
+		}
 		if (direction === 'diagonal-down') {
 			// Top-left → bottom-right: project onto (1,1) axis
 			return (nx + ny) / 2
-		} else {
-			// diagonal-up: bottom-left → top-right: project onto (1,-1) axis
-			return (nx + (1 - ny)) / 2
 		}
+		// diagonal-up: bottom-left → top-right: project onto (1,-1) axis
+		return (nx + (1 - ny)) / 2
 	})
 }
 
