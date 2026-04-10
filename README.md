@@ -84,7 +84,9 @@ removeFloodText(el, original)
 
 ## How it works
 
-Every visible character is wrapped in an inline `<span>`. Whitespace is left as bare text nodes — no layout impact, no reflow. Each frame, the wave function is evaluated at that character's normalised position in the paragraph. The `density` option controls how many wave cycles are visible at once; `direction` controls whether position is measured along a horizontal, vertical, or diagonal axis. Speed is consistent regardless of display refresh rate. The animation loop cleans up on unmount.
+Every visible character is wrapped in an inline `<span>`. Whitespace is left as bare text nodes — no layout impact, no reflow. Each frame, the wave function is evaluated at that character's normalised position in the paragraph. The `density` option controls how many wave cycles are visible at once.
+
+For `direction: 'right'` or `'left'`, position is the sequential character index — no DOM reads in the animation loop. For diagonal directions, each character's 2D screen coordinates are read via `getBoundingClientRect` once before the loop starts and projected onto the diagonal axis. Speed is framerate-independent; the loop excludes time the tab was hidden to prevent phase jumps when re-entering focus. The loop cleans up on unmount.
 
 ---
 
