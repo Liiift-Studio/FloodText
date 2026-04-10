@@ -111,6 +111,8 @@ Every visible character is wrapped in an inline `<span>`. Whitespace is left as 
 
 For `direction: 'right'` or `'left'`, position is the sequential character index — no DOM reads in the animation loop. For diagonal directions, each character's 2D screen coordinates are read via `getBoundingClientRect` once before the loop starts and projected onto the diagonal axis. Speed is framerate-independent; the loop excludes time the tab was hidden to prevent phase jumps when re-entering focus. In React, the animation loop is tied to the component lifecycle and stops automatically on unmount. The React hook skips the animation entirely if `prefers-reduced-motion: reduce` is set.
 
+**Line break safety:** Character spans are inline (not inline-block), so applying styles per character does not change line widths or word breaks. The browser's natural line-breaking is fully preserved.
+
 ---
 
 ## Dev notes
