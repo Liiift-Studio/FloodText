@@ -1,8 +1,10 @@
 # Flood Text
 
-A wave washes through the paragraph character by character — weight surges as it crests, oblique angles tilt, opacity breathes. Every letterform sits at its own position in the curve.
+A wave washes through the paragraph character by character — modulating weight, width, oblique angle, or opacity as it passes. Not line by line, not word by word: every letterform sits at its own moment in the curve. At low amplitude it reads as texture; at high amplitude, as transformation.
 
 **[floodtext.com](https://floodtext.com)** · [npm](https://www.npmjs.com/package/@liiift-studio/floodtext) · [GitHub](https://github.com/Liiift-Studio/FloodText)
+
+TypeScript · Zero dependencies · React + Vanilla JS
 
 ---
 
@@ -21,7 +23,7 @@ npm install @liiift-studio/floodtext
 ```tsx
 import { FloodText } from '@liiift-studio/floodtext'
 
-<FloodText effect="wght" amplitude={200} period={4} density={2}>
+<FloodText effect="wght" amplitude={200} period={4} density={2} direction="diagonal-down">
   Your paragraph text here...
 </FloodText>
 ```
@@ -39,53 +41,50 @@ Layer multiple effects simultaneously:
 ```tsx
 import { useFloodText } from '@liiift-studio/floodtext'
 
-function Paragraph({ children }) {
-  const ref = useFloodText({ effect: 'wdth', amplitude: 20, period: 4 })
-  return <p ref={ref}>{children}</p>
-}
+const ref = useFloodText({ effect: 'wght', amplitude: 200, period: 4, density: 2 })
+<p ref={ref}>{children}</p>
 ```
 
 ### Vanilla JS
 
+`applyFloodText` wraps characters and returns them. `startFloodText` drives the animation loop and returns a stop function.
+
 ```ts
-import { startFloodText, removeFloodText, getCleanHTML } from '@liiift-studio/floodtext'
+import { applyFloodText, startFloodText, removeFloodText, getCleanHTML } from '@liiift-studio/floodtext'
 
 const el = document.querySelector('p')
-const originalHTML = getCleanHTML(el)
+const original = getCleanHTML(el)
+const opts = { effect: 'wght', amplitude: 200, period: 4, density: 2 }
 
-// Returns a cleanup function — call it to stop the animation
-const stop = startFloodText(el, originalHTML, { effect: 'wght', amplitude: 200 })
+const chars = applyFloodText(el, original, opts)
+const stop = startFloodText(chars, opts)
+
+// Later — stop the animation loop and restore the DOM:
+stop()
+removeFloodText(el, original)
 ```
 
 ---
 
 ## Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `effect` | `FloodEffect \| FloodEffect[]` | `'wght'` | Built-in effect(s) to animate — `'wght'`, `'wdth'`, `'oblique'`, `'opacity'`, `'rotation'`, `'blur'`, `'size'` |
-| `amplitude` | `number` | auto per effect | Peak deviation from neutral. Used when a single effect is active |
-| `amplitudes` | `Partial<Record<FloodEffect, number>>` | — | Per-effect overrides when layering multiple effects |
-| `properties` | `FloodProperty[]` | — | Custom CSS properties to animate per character alongside built-in effects |
-| `period` | `number` | `4` | Seconds per full wave cycle |
-| `density` | `number` | `2` | Number of wave cycles visible across the full paragraph |
-| `direction` | `'right' \| 'left' \| 'diagonal-down' \| 'diagonal-up'` | `'diagonal-down'` | Wave travel direction |
-| `waveShape` | `'sine' \| 'sawtooth' \| 'triangle'` | `'sine'` | Wave shape |
+| Option | Default | Description |
+|--------|---------|-------------|
+| `effect` | `'wght'` | `'wght'` \| `'wdth'` \| `'oblique'` \| `'opacity'` \| `'rotation'` \| `'blur'` \| `'size'`. Pass an array to layer multiple effects simultaneously. Note: `oblique` requires Chrome 87+, Firefox 88+, Safari 14.1+. `size` causes layout recalculation per frame — use low amplitude |
+| `amplitude` | auto | Peak deviation from neutral. Used in single-effect mode. Defaults: `wght` 200, `wdth` 20, `oblique` 15°, `opacity` 0.3, `rotation` 15°, `blur` 2px, `size` 0.15em |
+| `amplitudes` | — | Per-effect overrides when layering multiple effects, e.g. `{ wght: 300, blur: 3 }` |
+| `properties` | — | Custom CSS properties or variables to animate per character. Each entry: `{ property, base, amplitude, unit?, clamp? }`. E.g. `[{ property: 'letter-spacing', base: 0, amplitude: 0.05, unit: 'em' }]` or `[{ property: '--my-axis', base: 100, amplitude: 20 }]` |
+| `period` | `4` | Seconds per full wave cycle |
+| `density` | `2` | Wave cycles visible across the paragraph at once. Higher = more bands |
+| `direction` | `'diagonal-down'` | `'diagonal-down'` ↘ \| `'diagonal-up'` ↗ \| `'right'` → \| `'left'` ←. Diagonal directions use 2D character positions |
+| `waveShape` | `'sine'` | `'sine'` \| `'sawtooth'` \| `'triangle'` |
+| `as` | `'p'` | HTML element to render, e.g. `'h1'`, `'span'`. *(React component only)* |
 
-### Custom properties
+---
 
-Animate any CSS property or CSS variable per character using `FloodProperty`:
+## How it works
 
-```tsx
-<FloodText
-  properties={[
-    { property: 'letter-spacing', base: 0, amplitude: 0.05, unit: 'em' },
-    { property: '--my-axis', base: 100, amplitude: 20, unit: '' },
-  ]}
->
-  Your text here...
-</FloodText>
-```
+Every visible character is wrapped in an inline `<span>`. Whitespace is left as bare text nodes — no layout impact, no reflow. Each frame, the wave function is evaluated at that character's normalised position in the paragraph. The `density` option controls how many wave cycles are visible at once; `direction` controls whether position is measured along a horizontal, vertical, or diagonal axis. Speed is consistent regardless of display refresh rate. The animation loop cleans up on unmount.
 
 ---
 
@@ -96,6 +95,16 @@ Animate any CSS property or CSS variable per character using `FloodProperty`:
 `package.json` at the repo root lists `next` as a devDependency. This is a **Vercel detection workaround** — not a real dependency of the npm package. Vercel's build system inspects the root `package.json` to detect the framework; without `next` present it falls back to a static build and skips the Next.js pipeline, breaking the `/site` subdirectory deploy.
 
 The package itself has zero runtime dependencies. Do not remove this entry.
+
+---
+
+## Future improvements
+
+- **Pause/resume API** — explicit `pause()` and `resume()` methods rather than stop-and-restart, so animation phase is preserved across pauses
+- **Intersection Observer** — automatic pause when the element scrolls out of view; resume on re-entry
+- **Per-character easing** — apply a custom easing curve to individual character offsets, not just the raw wave value
+- **More built-in effects** — `hue` (color hue rotation), `shadow` (text-shadow offset), `skew` (CSS skewX)
+- **SSR-compatible static snapshot** — render a stable mid-wave frame on the server so there is no FOUC before hydration
 
 ---
 
