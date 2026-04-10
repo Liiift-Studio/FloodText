@@ -81,9 +81,10 @@ removeFloodText(el, original)
 ### TypeScript
 
 ```ts
-import type { FloodTextOptions, FloodEffect, FloodProperty } from '@liiift-studio/floodtext'
+import type { FloodTextOptions, FloodEffect } from '@liiift-studio/floodtext'
 
-const opts: FloodTextOptions = { effect: 'wght', amplitude: 200, period: 4 }
+const effects: FloodEffect[] = ['wght', 'oblique']
+const opts: FloodTextOptions = { effect: effects, period: 4 }
 ```
 
 ---
@@ -95,7 +96,7 @@ const opts: FloodTextOptions = { effect: 'wght', amplitude: 200, period: 4 }
 | `effect` | `'wght'` | `'wght'` \| `'wdth'` \| `'oblique'` \| `'opacity'` \| `'rotation'` \| `'blur'` \| `'size'`. Pass an array to layer multiple effects simultaneously. Note: `oblique` requires Chrome 87+, Firefox 88+, Safari 14.1+. `size` causes layout recalculation per frame — use low amplitude |
 | `amplitude` | auto | Peak deviation from neutral. Used in single-effect mode. Defaults: `wght` 200, `wdth` 20, `oblique` 15°, `opacity` 0.3, `rotation` 15°, `blur` 2px, `size` 0.15em |
 | `amplitudes` | — | Per-effect overrides when layering multiple effects, e.g. `{ wght: 300, blur: 3 }` |
-| `properties` | — | Custom CSS properties or variables to animate per character. Each entry: `{ property, base, amplitude, unit?, clamp? }`. E.g. `[{ property: 'letter-spacing', base: 0, amplitude: 0.05, unit: 'em' }]` or `[{ property: '--my-axis', base: 100, amplitude: 20 }]` |
+| `properties` | — | Custom CSS properties or variables to animate per character. Each entry: `{ property, base, amplitude, unit?, clamp? }` where `clamp` is an optional `[min, max]` pair to cap the result (e.g. `[0, 1]` for opacity). E.g. `[{ property: 'letter-spacing', base: 0, amplitude: 0.05, unit: 'em' }]` or `[{ property: '--my-axis', base: 100, amplitude: 20, clamp: [50, 150] }]` |
 | `period` | `4` | Seconds per full wave cycle |
 | `density` | `2` | Wave cycles visible across the paragraph at once. Higher = more bands |
 | `direction` | `'diagonal-down'` | `'diagonal-down'` ↘ \| `'diagonal-up'` ↗ \| `'right'` → \| `'left'` ←. Diagonal directions use 2D screen coordinates; `right`/`left` use sequential character index |
@@ -108,7 +109,7 @@ const opts: FloodTextOptions = { effect: 'wght', amplitude: 200, period: 4 }
 
 Every visible character is wrapped in an inline `<span>`. Whitespace is left as bare text nodes — no layout impact, no reflow. Each frame, the wave function is evaluated at that character's normalised position in the paragraph. The `density` option controls how many wave cycles are visible at once.
 
-For `direction: 'right'` or `'left'`, position is the sequential character index — no DOM reads in the animation loop. For diagonal directions, each character's 2D screen coordinates are read via `getBoundingClientRect` once before the loop starts and projected onto the diagonal axis. Speed is framerate-independent; the loop excludes time the tab was hidden to prevent phase jumps when re-entering focus. In React, the animation loop is tied to the component lifecycle and stops automatically on unmount.
+For `direction: 'right'` or `'left'`, position is the sequential character index — no DOM reads in the animation loop. For diagonal directions, each character's 2D screen coordinates are read via `getBoundingClientRect` once before the loop starts and projected onto the diagonal axis. Speed is framerate-independent; the loop excludes time the tab was hidden to prevent phase jumps when re-entering focus. In React, the animation loop is tied to the component lifecycle and stops automatically on unmount. The React hook skips the animation entirely if `prefers-reduced-motion: reduce` is set.
 
 ---
 
