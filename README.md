@@ -18,6 +18,8 @@ npm install @liiift-studio/floodtext
 
 ## Usage
 
+> **Next.js App Router:** this library uses browser APIs. Add `"use client"` to any component file that imports from it.
+
 ### React component
 
 ```tsx
@@ -41,13 +43,16 @@ Layer multiple effects simultaneously:
 ```tsx
 import { useFloodText } from '@liiift-studio/floodtext'
 
+// Inside a React component:
 const ref = useFloodText({ effect: 'wght', amplitude: 200, period: 4, density: 2 })
-<p ref={ref}>{children}</p>
+return <p ref={ref}>{children}</p>
 ```
+
+The hook starts the animation loop on mount, re-wraps characters and restarts on container resize via `ResizeObserver`, and cleans up on unmount.
 
 ### Vanilla JS
 
-`applyFloodText` wraps characters and returns them. `startFloodText` drives the animation loop and returns a stop function.
+`applyFloodText` wraps characters and returns them. `startFloodText` drives the animation loop and returns a stop function. Note: options are not used by `applyFloodText` — only `startFloodText` reads them.
 
 ```ts
 import { applyFloodText, startFloodText, removeFloodText, getCleanHTML } from '@liiift-studio/floodtext'
@@ -56,12 +61,29 @@ const el = document.querySelector('p')
 const original = getCleanHTML(el)
 const opts = { effect: 'wght', amplitude: 200, period: 4, density: 2 }
 
-const chars = applyFloodText(el, original, opts)
-const stop = startFloodText(chars, opts)
+let chars = applyFloodText(el, original)
+let stop = startFloodText(chars, opts)
+
+// On resize — re-wrap characters and restart (diagonal directions read BCR positions once):
+const ro = new ResizeObserver(() => {
+  stop()
+  chars = applyFloodText(el, original)
+  stop = startFloodText(chars, opts)
+})
+ro.observe(el)
 
 // Later — stop the animation loop and restore the DOM:
 stop()
+ro.disconnect()
 removeFloodText(el, original)
+```
+
+### TypeScript
+
+```ts
+import type { FloodTextOptions, FloodEffect, FloodProperty } from '@liiift-studio/floodtext'
+
+const opts: FloodTextOptions = { effect: 'wght', amplitude: 200, period: 4 }
 ```
 
 ---
@@ -76,7 +98,7 @@ removeFloodText(el, original)
 | `properties` | — | Custom CSS properties or variables to animate per character. Each entry: `{ property, base, amplitude, unit?, clamp? }`. E.g. `[{ property: 'letter-spacing', base: 0, amplitude: 0.05, unit: 'em' }]` or `[{ property: '--my-axis', base: 100, amplitude: 20 }]` |
 | `period` | `4` | Seconds per full wave cycle |
 | `density` | `2` | Wave cycles visible across the paragraph at once. Higher = more bands |
-| `direction` | `'diagonal-down'` | `'diagonal-down'` ↘ \| `'diagonal-up'` ↗ \| `'right'` → \| `'left'` ←. Diagonal directions use 2D character positions |
+| `direction` | `'diagonal-down'` | `'diagonal-down'` ↘ \| `'diagonal-up'` ↗ \| `'right'` → \| `'left'` ←. Diagonal directions use 2D screen coordinates; `right`/`left` use sequential character index |
 | `waveShape` | `'sine'` | `'sine'` \| `'sawtooth'` \| `'triangle'` |
 | `as` | `'p'` | HTML element to render, e.g. `'h1'`, `'span'`. *(React component only)* |
 
