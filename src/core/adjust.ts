@@ -1,6 +1,22 @@
 // floodText/src/core/adjust.ts — framework-agnostic DOM algorithm and per-character animation
 import { FLOOD_TEXT_CLASSES, type FloodTextOptions, type FloodEffect, type FloodProperty } from './types'
 
+// ─── Sentiment (optional peer dep) ────────────────────────────────────────────
+
+type SentimentModule = { default: new () => { analyze: (text: string) => { score: number } } }
+let _Sentiment: (new () => { analyze: (text: string) => { score: number } }) | null = null
+let _sentimentLoading = false
+
+function tryLoadSentiment(): void {
+	if (_Sentiment !== null || _sentimentLoading) return
+	_sentimentLoading = true
+	import('sentiment' as string)
+		.then((m) => { _Sentiment = (m as SentimentModule).default })
+		.catch(() => {
+			console.warn('[floodtext] source: "sentiment" requires the `sentiment` package — falling back to "fixed"')
+		})
+}
+
 /** Neutral base values and default amplitudes per effect type */
 const EFFECT_DEFAULTS: Record<FloodEffect, { base: number; amplitude: number }> = {
 	wght:     { base: 400, amplitude: 200  },
@@ -67,9 +83,12 @@ function collectTextNodes(root: Node, collected: Text[]): void {
 export function applyFloodText(
 	element: HTMLElement,
 	originalHTML: string,
-	_options: FloodTextOptions = {},
+	options: FloodTextOptions = {},
 ): HTMLElement[] {
 	if (typeof window === 'undefined') return []
+
+	// Kick off background sentiment load when the source will be 'sentiment'
+	if (options.source === 'sentiment') tryLoadSentiment()
 
 	// --- Pass 1: Reset ---
 	element.innerHTML = originalHTML
@@ -77,6 +96,12 @@ export function applyFloodText(
 	if (!element.textContent?.trim()) return []
 
 	// --- Pass 2: Walk text nodes, wrap each character ---
+	// When source is 'sentiment', score each word via the sentiment package (once loaded)
+	// and stamp the normalised score onto each char span as data-ft-sentiment.
+	// startFloodText reads these to scale amplitude per character.
+	const useSentiment = options.source === 'sentiment' && _Sentiment !== null
+	const analyser = useSentiment ? new _Sentiment!() : null
+
 	const textNodes: Text[] = []
 	collectTextNodes(element, textNodes)
 
@@ -88,16 +113,31 @@ export function applyFloodText(
 
 		const fragment = document.createDocumentFragment()
 
-		for (const char of text) {
-			if (/\s/.test(char)) {
-				// Preserve whitespace as a bare text node — no layout change
-				fragment.appendChild(document.createTextNode(char))
-			} else {
-				const span = document.createElement('span')
-				span.className = FLOOD_TEXT_CLASSES.char
-				span.textContent = char
-				fragment.appendChild(span)
-				charSpans.push(span)
+		// Split into word-level tokens to score each word when in sentiment mode
+		const wordTokens = text.split(/(\S+)/)
+		for (let wi = 0; wi < wordTokens.length; wi++) {
+			const token = wordTokens[wi]
+			// Preserve whitespace tokens as bare text nodes
+			if (/^\s*$/.test(token)) {
+				if (token) fragment.appendChild(document.createTextNode(token))
+				continue
+			}
+			// Score this word if sentiment mode is active
+			const rawScore = analyser ? analyser.analyze(token).score : 0
+
+			for (const char of token) {
+				if (/\s/.test(char)) {
+					fragment.appendChild(document.createTextNode(char))
+				} else {
+					const span = document.createElement('span')
+					span.className = FLOOD_TEXT_CLASSES.char
+					span.textContent = char
+					if (useSentiment) {
+						span.dataset.ftSentiment = String(rawScore)
+					}
+					fragment.appendChild(span)
+					charSpans.push(span)
+				}
 			}
 		}
 
@@ -276,6 +316,11 @@ export function startFloodText(
 ): () => void {
 	if (charSpans.length === 0) return () => {}
 
+	// Skip animation on e-ink / slow-update displays — wave animation produces no
+	// visible effect and wastes power. matchMedia('(update: slow)') is true on
+	// Kindle, Remarkable, and other e-ink panels.
+	if (typeof window !== 'undefined' && window.matchMedia('(update: slow)').matches) return () => {}
+
 	// Normalise effect input to an array
 	const effectInput  = options.effect ?? 'wght'
 	const effects: FloodEffect[] = Array.isArray(effectInput) ? effectInput : [effectInput]
@@ -297,6 +342,20 @@ export function startFloodText(
 	const density   = options.density   ?? 2
 	const direction = options.direction ?? 'diagonal-down'
 	const waveShape = options.waveShape ?? 'sine'
+
+	// Build per-char amplitude multipliers from sentiment scores when source === 'sentiment'.
+	// Scores are normalised so the most extreme word always reaches full amplitude (multiplier = 1).
+	// Neutral function words (score 0) use a minimum multiplier of 0.2 so they still pulse faintly.
+	let charMultipliers: number[] | null = null
+	if (options.source === 'sentiment') {
+		const scores = charSpans.map((s) => {
+			const raw = parseFloat(s.dataset.ftSentiment ?? '0')
+			return isNaN(raw) ? 0 : raw
+		})
+		const absScores = scores.map(Math.abs)
+		const maxAbs = Math.max(...absScores, 1) // avoid division by zero
+		charMultipliers = absScores.map((abs) => 0.2 + 0.8 * (abs / maxAbs))
+	}
 
 	const speed     = 1 / period // cycles per second
 	// elapsed tracks total animation time, excluding time the tab was hidden.
@@ -335,7 +394,18 @@ export function startFloodText(
 				: pos * density - t * speed
 
 			const wave = computeWave(phase, waveShape)
-			applyEffectsToSpan(span, effects, customProps, wave, amplitudeMap)
+
+			// Apply per-char sentiment multiplier when active — scale the amplitude map
+			if (charMultipliers !== null) {
+				const multiplier = charMultipliers[i] ?? 1
+				const scaledMap: Partial<Record<FloodEffect, number>> = {}
+				for (const [k, v] of Object.entries(amplitudeMap) as [FloodEffect, number][]) {
+					scaledMap[k] = v * multiplier
+				}
+				applyEffectsToSpan(span, effects, customProps, wave, scaledMap)
+			} else {
+				applyEffectsToSpan(span, effects, customProps, wave, amplitudeMap)
+			}
 		})
 
 		rafId = requestAnimationFrame(tick)

@@ -40,6 +40,19 @@ export interface FloodTextOptions {
 	 */
 	effect?: FloodEffect | FloodEffect[]
 	/**
+	 * Amplitude source. Default: 'fixed'
+	 *
+	 * - **'fixed'** (default) — all characters use the same amplitude (from `amplitude` / `amplitudes`).
+	 *
+	 * - **'sentiment'** — per-word AFINN emotional valence scores scale the amplitude.
+	 *   Words with strong emotional charge (rage, joy, grief) pulse at higher amplitude;
+	 *   neutral function words (the, of, and) pulse at minimum. Scores are normalised
+	 *   so the most extreme word in the paragraph always reaches full amplitude.
+	 *   Requires the `sentiment` package: `npm install sentiment`.
+	 *   Falls back to 'fixed' if `sentiment` is not installed.
+	 */
+	source?: 'fixed' | 'sentiment'
+	/**
 	 * Peak deviation from the neutral value, in style-specific units.
 	 * Only used when a single built-in effect is active — for multiple effects use `amplitudes`.
 	 * (default: auto per effect)
