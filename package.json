@@ -1,7 +1,7 @@
 {
 	"name": "@liiift-studio/floodtext",
 	"version": "1.0.2",
-	"description": "Per-character variable font wave animation \u2014 weight, width, oblique, or opacity washes through the paragraph letter by letter",
+	"description": "Per-character variable font wave animation — weight, width, oblique, or opacity washes through the paragraph letter by letter",
 	"type": "module",
 	"main": "dist/index.cjs",
 	"module": "dist/index.js",
@@ -41,6 +41,7 @@
 		"happy-dom": "^12.0.0",
 		"next": "16.2.2",
 		"react": "^19.0.0",
+		"sentiment": "^5.0.2",
 		"typescript": "^5.0.0",
 		"vite": "^6.0.0",
 		"vite-plugin-dts": "^4.0.0",

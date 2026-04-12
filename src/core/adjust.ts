@@ -10,7 +10,7 @@ let _sentimentLoading = false
 function tryLoadSentiment(): void {
 	if (_Sentiment !== null || _sentimentLoading) return
 	_sentimentLoading = true
-	import('sentiment' as string)
+	import(/* @vite-ignore */ 'sentiment')
 		.then((m) => { _Sentiment = (m as SentimentModule).default })
 		.catch(() => {
 			console.warn('[floodtext] source: "sentiment" requires the `sentiment` package — falling back to "fixed"')
