@@ -57,7 +57,7 @@ The hook starts the animation loop on mount, re-wraps characters and restarts on
 `applyFloodText` wraps characters and returns them. `startFloodText` drives the animation loop and returns a stop function. Note: options are not used by `applyFloodText` — only `startFloodText` reads them.
 
 ```ts
-import { applyFloodText, startFloodText, removeFloodText, getCleanHTML } from '@liiift-studio/floodtext'
+import { applyFloodText, startFloodText, pauseFloodText, resumeFloodText, removeFloodText, getCleanHTML } from '@liiift-studio/floodtext'
 
 const el = document.querySelector('p')
 const original = getCleanHTML(el)
@@ -78,6 +78,10 @@ ro.observe(el)
 stop()
 ro.disconnect()
 removeFloodText(el, original)
+
+// Pause and resume without stopping the loop or losing position:
+pauseFloodText(el)   // Pause an active flood animation on a container element
+resumeFloodText(el)  // Resume a paused flood animation
 ```
 
 ### TypeScript
@@ -104,6 +108,7 @@ const opts: FloodTextOptions = { effect: effects, period: 4 }
 | `direction` | `'diagonal-down'` | `'diagonal-down'` ↘ \| `'diagonal-up'` ↗ \| `'right'` → \| `'left'` ←. Diagonal directions use 2D screen coordinates; `right`/`left` use sequential character index |
 | `waveShape` | `'sine'` | `'sine'` \| `'sawtooth'` \| `'triangle'` |
 | `as` | `'p'` | HTML element to render, e.g. `'h1'`, `'span'`. *(React component only)* |
+| `pauseOffscreen` | `false` | Pause the animation when the element scrolls out of view; resume when visible |
 
 ---
 
