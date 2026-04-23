@@ -77,6 +77,12 @@ export interface FloodTextOptions {
 	direction?: 'right' | 'left' | 'diagonal-down' | 'diagonal-up'
 	/** Shape of the wave (default: 'sine') */
 	waveShape?: 'sine' | 'sawtooth' | 'triangle'
+	/**
+	 * Automatically pause the rAF loop when the element scrolls out of the viewport
+	 * and resume it when it returns. Uses IntersectionObserver internally.
+	 * (default: true)
+	 */
+	pauseOffscreen?: boolean
 }
 
 /** CSS class names injected by flood-text — use these to target generated markup */
