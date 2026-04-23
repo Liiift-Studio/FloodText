@@ -1,8 +1,8 @@
 "use client"
 
 // Interactive flood-text demo with cursor/gyro mode, global scale for multi-effect, and live controls
-import { useState, useEffect, useDeferredValue } from "react"
-import { FloodText } from "@liiift-studio/floodtext"
+import { useState, useEffect, useDeferredValue, useRef } from "react"
+import { FloodText, pauseFloodText, resumeFloodText } from "@liiift-studio/floodtext"
 import type { FloodEffect } from "@liiift-studio/floodtext"
 
 const PARAGRAPHS = [
@@ -110,6 +110,10 @@ export default function Demo() {
 	const [waveShape, setWaveShape] = useState<'sine' | 'sawtooth' | 'triangle'>('sine')
 	const [beforeAfter, setComparing] = useState(false)
 
+	// Pause/resume state and container ref
+	const [paused, setPaused] = useState(false)
+	const containerRef = useRef<HTMLDivElement>(null)
+
 	// Interaction modes — mutually exclusive
 	const [cursorMode, setCursorMode] = useState(false)
 	const [gyroMode, setGyroMode] = useState(false)
@@ -214,6 +218,19 @@ export default function Demo() {
 		}
 	}, [gyroMode])
 
+	// Pause/resume effect — calls library API when paused state changes
+	useEffect(() => {
+		if (!containerRef.current) return
+		if (paused) {
+			pauseFloodText(containerRef.current)
+		} else {
+			resumeFloodText(containerRef.current)
+		}
+	}, [paused])
+
+	// Toggle pause/resume
+	const togglePause = () => setPaused(v => !v)
+
 	// Toggle cursor mode — turns off gyro if active
 	const toggleCursor = () => {
 		setGyroMode(false)
@@ -309,11 +326,26 @@ export default function Demo() {
 						<span>{gyroMode ? 'Tilt active' : 'Tilt'}</span>
 					</button>
 				)}
+
+				{/* Pause/resume toggle */}
+				<button
+					onClick={togglePause}
+					aria-pressed={paused}
+					title={paused ? 'Resume animation' : 'Pause animation'}
+					className="text-xs px-3 py-1 rounded-full border transition-opacity"
+					style={{
+						borderColor: 'currentColor',
+						opacity: paused ? 1 : 0.5,
+						background: paused ? 'var(--btn-bg)' : 'transparent',
+					}}
+				>
+					{paused ? 'Resume' : 'Pause'}
+				</button>
 			</div>
 
 			{/* Live text */}
 			<div className="relative pb-8">
-				<div className="flex flex-col gap-8">
+				<div ref={containerRef} className="flex flex-col gap-8">
 					{PARAGRAPHS.map((para, i) => (
 						<FloodText
 							key={i}
