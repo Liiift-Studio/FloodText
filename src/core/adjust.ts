@@ -1,6 +1,25 @@
 // floodText/src/core/adjust.ts — framework-agnostic DOM algorithm and per-character animation
 import { FLOOD_TEXT_CLASSES, type FloodTextOptions, type FloodEffect, type FloodProperty } from './types'
 
+// ─── Pause/resume registry ────────────────────────────────────────────────────
+
+/**
+ * Internal state stored per active animation, keyed by the first character span.
+ * Allows pauseFloodText / resumeFloodText to reach the rAF handle without
+ * requiring callers to hold onto an opaque token.
+ */
+interface FloodAnimState {
+	/** Whether the animation is currently running (rAF scheduled) */
+	running: boolean
+	/** Cancel the scheduled rAF frame (no-op when already stopped) */
+	cancel: () => void
+	/** Schedule the next rAF frame, resuming from current elapsed time */
+	schedule: () => void
+}
+
+/** WeakMap keyed by the animated element itself — GC'd automatically when the element is removed */
+const _animRegistry = new WeakMap<HTMLElement, FloodAnimState>()
+
 // ─── Sentiment (optional peer dep) ────────────────────────────────────────────
 
 type SentimentModule = { default: new () => { analyze: (text: string) => { score: number } } }
@@ -413,7 +432,81 @@ export function startFloodText(
 
 	rafId = requestAnimationFrame(tick)
 
-	return () => cancelAnimationFrame(rafId)
+	// ─── Registry + pause-offscreen ───────────────────────────────────────────
+	// Derive the container element from the first char span so callers can pass
+	// el directly to pauseFloodText / resumeFloodText.  charSpans[0].parentElement
+	// is available here because applyFloodText has already inserted the spans.
+	const containerEl = charSpans[0].parentElement as HTMLElement | null
+
+	if (containerEl) {
+		_animRegistry.set(containerEl, {
+			running: true,
+			cancel:   () => { cancelAnimationFrame(rafId) },
+			schedule: () => { rafId = requestAnimationFrame(tick) },
+		})
+	}
+
+	// Intersection Observer — pause the rAF loop when the element scrolls out of
+	// view and resume when it re-enters, preserving animation phase.
+	// Opt-out with pauseOffscreen: false.
+	let io: IntersectionObserver | null = null
+	if (options.pauseOffscreen !== false && containerEl && typeof IntersectionObserver !== 'undefined') {
+		io = new IntersectionObserver((entries) => {
+			const state = _animRegistry.get(containerEl)
+			if (!state) return
+			if (entries[0].isIntersecting) {
+				if (!state.running) {
+					// Re-sync lastTick so elapsed doesn't jump after a long pause
+					lastTick = performance.now()
+					state.running = true
+					state.schedule()
+				}
+			} else {
+				if (state.running) {
+					state.cancel()
+					state.running = false
+				}
+			}
+		})
+		io.observe(containerEl)
+	}
+
+	return () => {
+		cancelAnimationFrame(rafId)
+		io?.disconnect()
+		if (containerEl) _animRegistry.delete(containerEl)
+	}
+}
+
+/**
+ * Pause an active flood-text animation without losing phase.
+ * The rAF loop is cancelled but the elapsed time is preserved, so
+ * a subsequent resumeFloodText call continues from the same point in the wave.
+ * Pass the same element that was passed to applyFloodText.
+ *
+ * @param el - Element previously processed by applyFloodText
+ */
+export function pauseFloodText(el: HTMLElement): void {
+	const state = _animRegistry.get(el)
+	if (state && state.running) {
+		state.cancel()
+		state.running = false
+	}
+}
+
+/**
+ * Resume a paused flood-text animation, continuing from where it left off.
+ * Has no effect if the animation is already running or was never started.
+ * Pass the same element that was passed to applyFloodText.
+ *
+ * @param el - Element previously processed by applyFloodText
+ */
+export function resumeFloodText(el: HTMLElement): void {
+	const state = _animRegistry.get(el)
+	if (state && !state.running) {
+		state.running = true
+		state.schedule()
+	}
 }
 
 /**
