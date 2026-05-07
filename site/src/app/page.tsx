@@ -45,7 +45,7 @@ export default function Home() {
 				<div className="prose-grid grid grid-cols-1 sm:grid-cols-2 gap-12 text-sm leading-relaxed opacity-70">
 					<div className="flex flex-col gap-3">
 						<p className="font-semibold opacity-100 text-base">Per-character phase</p>
-						<p>Every visible character is wrapped in an inline span. Each frame, the wave function is evaluated at that character&apos;s position in the text — normalised across the whole paragraph. The density option controls how many wave cycles are visible at once.</p>
+						<p>Every visible character is wrapped in an inline span. Each frame, the wave function is evaluated at that character&rsquo;s position in the text — normalised across the whole paragraph. The density option controls how many wave cycles are visible at once.</p>
 					</div>
 					<div className="flex flex-col gap-3">
 						<p className="font-semibold opacity-100 text-base">Traveling wave</p>
