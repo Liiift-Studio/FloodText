@@ -101,7 +101,7 @@ function GyroIcon() {
 
 export default function Demo() {
 	// Wave controls
-	const [activeEffects, setActiveEffects] = useState<Set<FloodEffect>>(new Set(['wght']))
+	const [activeEffects, setActiveEffects] = useState<Set<FloodEffect>>(new Set(['wght', 'opacity']))
 	const [amplitude, setAmplitude] = useState(EFFECT_CONFIG.wght.default)
 	const [period, setPeriod] = useState(4)
 	const [density, setDensity] = useState(2)
