@@ -1,5 +1,5 @@
 // floodText/src/react/useFloodText.ts — React hook: character detection + animation lifecycle
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { applyFloodText, startFloodText, getCleanHTML } from '../core/adjust'
 import type { FloodTextOptions } from '../core/types'
 
@@ -49,6 +49,12 @@ export function useFloodText(options: FloodTextOptions) {
 		return startFloodText(charSpans, optionsRef.current)
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [effectKey, amplitude, amplitudesKey, propertiesKey, period, density, direction, waveShape])
+
+	// Re-run after fonts load — BCR-based character grouping and line detection give
+	// wrong results if called before the variable font finishes loading.
+	useEffect(() => {
+		document.fonts?.ready?.then(run)
+	}, [run])
 
 	useLayoutEffect(() => {
 		let stopAnimation = run()
