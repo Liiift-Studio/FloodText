@@ -54,7 +54,7 @@ The hook starts the animation loop on mount, re-wraps characters and restarts on
 
 ### Vanilla JS
 
-`applyFloodText` wraps characters and returns them. `startFloodText` drives the animation loop and returns a stop function. Note: options are not used by `applyFloodText` — only `startFloodText` reads them.
+`applyFloodText` wraps characters and returns them. `startFloodText` drives the animation loop and returns a stop function. Options are shared between `applyFloodText` and `startFloodText`.
 
 ```ts
 import { applyFloodText, startFloodText, pauseFloodText, resumeFloodText, removeFloodText, getCleanHTML } from '@liiift-studio/floodtext'
@@ -100,6 +100,7 @@ const opts: FloodTextOptions = { effect: effects, period: 4 }
 | Option | Default | Description |
 |--------|---------|-------------|
 | `effect` | `'wght'` | `'wght'` \| `'wdth'` \| `'oblique'` \| `'opacity'` \| `'rotation'` \| `'blur'` \| `'size'`. Pass an array to layer multiple effects simultaneously. Note: `oblique` requires Chrome 87+, Firefox 88+, Safari 14.1+. `size` causes layout recalculation per frame — use low amplitude |
+| `source` | `'fixed'` | `'fixed'` — all characters share the same amplitude. `'sentiment'` — per-word AFINN emotional valence scales amplitude; words with strong charge pulse at full amplitude, neutral function words pulse at minimum. Requires `npm install sentiment`; falls back to `'fixed'` if not installed |
 | `amplitude` | auto | Peak deviation from neutral. Used in single-effect mode. Defaults: `wght` 200, `wdth` 20, `oblique` 15°, `opacity` 0.3, `rotation` 15°, `blur` 2px, `size` 0.15em |
 | `amplitudes` | — | Per-effect overrides when layering multiple effects, e.g. `{ wght: 300, blur: 3 }` |
 | `properties` | — | Custom CSS properties or variables to animate per character. Each entry: `{ property, base, amplitude, unit?, clamp? }` where `clamp` is an optional `[min, max]` pair to cap the result (e.g. `[0, 1]` for opacity). E.g. `[{ property: 'letter-spacing', base: 0, amplitude: 0.05, unit: 'em' }]` or `[{ property: '--my-axis', base: 100, amplitude: 20, clamp: [50, 150] }]` |
@@ -107,8 +108,8 @@ const opts: FloodTextOptions = { effect: effects, period: 4 }
 | `density` | `2` | Wave cycles visible across the paragraph at once. Higher = more bands |
 | `direction` | `'diagonal-down'` | `'diagonal-down'` ↘ \| `'diagonal-up'` ↗ \| `'right'` → \| `'left'` ←. Diagonal directions use 2D screen coordinates; `right`/`left` use sequential character index |
 | `waveShape` | `'sine'` | `'sine'` \| `'sawtooth'` \| `'triangle'` |
+| `pauseOffscreen` | `true` | Pause the animation when the element scrolls out of view; resume when visible. Uses IntersectionObserver internally |
 | `as` | `'p'` | HTML element to render, e.g. `'h1'`, `'span'`. *(React component only)* |
-| `pauseOffscreen` | `false` | Pause the animation when the element scrolls out of view; resume when visible |
 
 ---
 
@@ -140,4 +141,4 @@ The package itself has zero runtime dependencies. Do not remove this entry.
 
 ---
 
-Current version: 0.1.8
+Current version: 1.0.14

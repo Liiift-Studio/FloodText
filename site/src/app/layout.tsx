@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 export const metadata: Metadata = {
 	title: "Flood Text — Per-character style wave animation",
 	icons: { icon: "/icon.svg", shortcut: "/icon.svg", apple: "/icon.svg" },
-	description: "Flood Text sends a wave through body copy character by character — modulating weight, width, oblique angle, or opacity as it passes. Every letterform sits at its own moment in the curve.",
+	description: "A wave washes through text character by character — modulating weight, width, oblique, or opacity. Every letterform at its own moment in the curve. React + vanilla JS.",
 	keywords: ["flood text", "per-character animation", "variable font animation", "wave animation", "typography", "TypeScript", "npm"],
 	openGraph: {
 		title: "Flood Text — Per-character style wave animation",
@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 		description: "A wave washes through body copy character by character — modulating weight, width, oblique, or opacity. Every letterform at its own moment in the curve.",
 	},
 	metadataBase: new URL("https://floodtext.com"),
+	alternates: { canonical: "https://floodtext.com" },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
