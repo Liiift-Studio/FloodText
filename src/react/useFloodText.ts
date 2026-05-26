@@ -62,6 +62,13 @@ export function useFloodText(options: FloodTextOptions) {
 		let lastWidth = 0
 		let rafId = 0
 
+		if (typeof ResizeObserver === 'undefined') {
+			return () => {
+				cancelAnimationFrame(rafId)
+				stopAnimation()
+			}
+		}
+
 		const ro = new ResizeObserver((entries) => {
 			const w = Math.round(entries[0].contentRect.width)
 			if (w === lastWidth) return

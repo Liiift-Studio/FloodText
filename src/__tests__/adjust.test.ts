@@ -205,4 +205,48 @@ describe('flood-text', () => {
 		expect(typeof stop).toBe('function')
 		stop()
 	})
+
+	// 19. prefers-reduced-motion: applyFloodText restores originalHTML and returns empty array
+	it('prefers-reduced-motion: restores originalHTML, returns [], injects no char spans', () => {
+		const el = makeElement('Hello world')
+		const original = getCleanHTML(el)
+		vi.spyOn(window, 'matchMedia').mockReturnValue({
+			matches: true, media: '', onchange: null, addListener: () => {}, removeListener: () => {},
+			addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => true,
+		} as MediaQueryList)
+		const charSpans = applyFloodText(el, original, {})
+		expect(charSpans.length).toBe(0)
+		expect(el.innerHTML).toBe(original)
+		expect(el.querySelectorAll(`.${FLOOD_TEXT_CLASSES.char}`).length).toBe(0)
+		vi.restoreAllMocks()
+	})
+
+	// 20. update:slow: applyFloodText restores originalHTML and returns empty array
+	it('update:slow guard: restores originalHTML on e-ink display', () => {
+		const el = makeElement('Hello world')
+		const original = getCleanHTML(el)
+		vi.spyOn(window, 'matchMedia').mockReturnValue({
+			matches: true, media: '', onchange: null, addListener: () => {}, removeListener: () => {},
+			addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => true,
+		} as MediaQueryList)
+		const charSpans = applyFloodText(el, original, {})
+		expect(charSpans.length).toBe(0)
+		expect(el.innerHTML).toBe(original)
+		vi.restoreAllMocks()
+	})
+
+	// 21. SSR guard: applyFloodText returns [] without throwing when window is undefined
+	it('SSR guard: returns [] without throwing when window is undefined', () => {
+		const el = makeElement('Hello world')
+		const original = getCleanHTML(el)
+		const win = (globalThis as Record<string, unknown>).window
+		delete (globalThis as Record<string, unknown>).window
+		try {
+			let result: HTMLElement[] = []
+			expect(() => { result = applyFloodText(el, original, {}) }).not.toThrow()
+			expect(result).toEqual([])
+		} finally {
+			;(globalThis as Record<string, unknown>).window = win
+		}
+	})
 })

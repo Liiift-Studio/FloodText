@@ -109,10 +109,18 @@ export function applyFloodText(
 	// Kick off background sentiment load when the source will be 'sentiment'
 	if (options.source === 'sentiment') tryLoadSentiment()
 
+	// The per-character wave is a decorative animation — skip all character wrapping
+	// when the user has requested reduced motion. Restoring originalHTML ensures no
+	// ft-char spans are left in the DOM that would fragment text for assistive technology.
+	if (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
+		element.innerHTML = originalHTML
+		return []
+	}
+
 	// On e-ink / slow-update displays the wave animation produces no visible effect.
 	// Restore the element to its original HTML and return — skipping all character wrapping.
 	// matchMedia('(update: slow)') is true on Kindle, Remarkable, and similar panels.
-	if (window.matchMedia('(update: slow)').matches) {
+	if (window.matchMedia?.('(update: slow)')?.matches) {
 		element.innerHTML = originalHTML
 		return []
 	}
@@ -346,7 +354,7 @@ export function startFloodText(
 	// Skip animation on e-ink / slow-update displays — wave animation produces no
 	// visible effect and wastes power. matchMedia('(update: slow)') is true on
 	// Kindle, Remarkable, and other e-ink panels.
-	if (typeof window !== 'undefined' && window.matchMedia('(update: slow)').matches) return () => {}
+	if (typeof window !== 'undefined' && window.matchMedia?.('(update: slow)')?.matches) return () => {}
 
 	// Normalise effect input to an array
 	const effectInput  = options.effect ?? 'wght'
