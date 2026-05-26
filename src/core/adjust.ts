@@ -109,6 +109,14 @@ export function applyFloodText(
 	// Kick off background sentiment load when the source will be 'sentiment'
 	if (options.source === 'sentiment') tryLoadSentiment()
 
+	// On e-ink / slow-update displays the wave animation produces no visible effect.
+	// Restore the element to its original HTML and return — skipping all character wrapping.
+	// matchMedia('(update: slow)') is true on Kindle, Remarkable, and similar panels.
+	if (window.matchMedia('(update: slow)').matches) {
+		element.innerHTML = originalHTML
+		return []
+	}
+
 	// --- Pass 1: Reset ---
 	element.innerHTML = originalHTML
 

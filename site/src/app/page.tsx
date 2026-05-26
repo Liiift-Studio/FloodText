@@ -51,6 +51,10 @@ export default function Home() {
 						<p className="font-semibold opacity-100 text-base">Traveling wave</p>
 						<p>The wave advances through the characters over time using a requestAnimationFrame loop. Speed is consistent regardless of display refresh rate. The loop cleans up on unmount. Whitespace is left as bare text nodes — no layout impact, no reflow.</p>
 					</div>
+					<div className="flex flex-col gap-3">
+						<p className="font-semibold opacity-100 text-base">Accessibility &amp; compatibility</p>
+						<p>On e-ink and slow-refresh displays (<span className="font-mono text-xs">update: slow</span> media feature — Kindle, Remarkable, and similar panels), the wave animation produces no visible effect. FloodText detects this automatically: the element is restored to its original HTML and all animation work is skipped. The <span className="font-mono text-xs">prefers-reduced-motion: reduce</span> preference is not checked here, but the <span className="font-mono text-xs">active</span> option on the React component lets callers opt out.</p>
+					</div>
 				</div>
 			</section>
 
