@@ -41,12 +41,30 @@ const EFFECT_CONFIG: Record<FloodEffect, { default: number; min: number; max: nu
 
 const ALL_EFFECTS: FloodEffect[] = ['wght', 'wdth', 'oblique', 'opacity', 'rotation', 'blur', 'size']
 
+/** Tooltip text for each effect toggle button */
+const EFFECT_TOOLTIP: Record<FloodEffect, string> = {
+	wght:     'Animates font weight — characters surge from light to bold as the wave crests',
+	wdth:     'Animates font width — characters compress and expand as the wave passes through',
+	oblique:  'Animates oblique angle — letters tilt forward and back along the wave',
+	opacity:  'Animates opacity — characters fade in and out, giving the text a breathing quality',
+	rotation: 'Animates CSS rotation — each character tilts on its own axis as the wave rolls through',
+	blur:     'Animates blur — characters sharpen and soften in sequence, as if drifting in and out of focus',
+	size:     'Animates font size — characters grow and shrink as the wave crests, creating a ripple in scale',
+}
+
+/** Tooltip text for each wave shape button */
+const WAVE_TOOLTIP: Record<'sine' | 'sawtooth' | 'triangle', string> = {
+	sine:     'Smooth sinusoidal curve — the wave eases in and out, producing fluid, organic motion',
+	sawtooth: 'Instant reset after each peak — the effect ramps up abruptly then drops, giving a sharp, mechanical feel',
+	triangle: 'Linear ramp up then down — motion is constant-speed with hard direction changes at peaks and troughs',
+}
+
 /** Labelled range slider with value displayed below the track */
-function Slider({ label, value, min, max, step, fmt, onChange }: { label: string; value: number; min: number; max: number; step: number; fmt?: (v: number) => string; onChange: (v: number) => void }) {
+function Slider({ label, value, min, max, step, fmt, onChange, title }: { label: string; value: number; min: number; max: number; step: number; fmt?: (v: number) => string; onChange: (v: number) => void; title?: string }) {
 	return (
 		<div className="flex flex-col gap-1">
 			<span className="text-xs uppercase tracking-widest opacity-50">{label}</span>
-			<input type="range" min={min} max={max} step={step} value={value} aria-label={label} onChange={e => onChange(Number(e.target.value))} onTouchStart={e => e.stopPropagation()} style={{ touchAction: 'none' }} />
+			<input type="range" min={min} max={max} step={step} value={value} aria-label={label} title={title} onChange={e => onChange(Number(e.target.value))} onTouchStart={e => e.stopPropagation()} style={{ touchAction: 'none' }} />
 			<span className="tabular-nums text-xs opacity-50 text-right">{fmt ? fmt(value) : value}</span>
 		</div>
 	)
@@ -270,23 +288,23 @@ export default function Demo() {
 			{/* Wave controls */}
 			<div className="grid grid-cols-3 gap-6 mb-6">
 				{singleEffect && cfg ? (
-					<Slider label={`Amplitude${cfg.unit ? ` (${cfg.unit})` : ''}`} value={amplitude} min={cfg.min} max={cfg.max} step={cfg.step} fmt={cfg.step < 1 ? v => v.toFixed(2) : undefined} onChange={setAmplitude} />
+					<Slider label={`Amplitude${cfg.unit ? ` (${cfg.unit})` : ''}`} value={amplitude} min={cfg.min} max={cfg.max} step={cfg.step} fmt={cfg.step < 1 ? v => v.toFixed(2) : undefined} onChange={setAmplitude} title={`How far the wave swings the ${singleEffect} value above and below its baseline — higher amplitude = more dramatic variation character by character`} />
 				) : (
-					<Slider label="Scale ×" value={scale} min={0.1} max={3.0} step={0.1} fmt={v => v.toFixed(1)} onChange={setScale} />
+					<Slider label="Scale ×" value={scale} min={0.1} max={3.0} step={0.1} fmt={v => v.toFixed(1)} onChange={setScale} title="Uniform multiplier applied to all active effects simultaneously — scale up for bolder motion, scale down to blend effects subtly" />
 				)}
-				<Slider label="Period (s)" value={effectivePeriod} min={1} max={12} step={0.5} onChange={setPeriod} />
-				<Slider label="Density" value={effectiveDensity} min={0.5} max={5} step={0.5} onChange={setDensity} />
+				<Slider label="Period (s)" value={effectivePeriod} min={1} max={12} step={0.5} onChange={setPeriod} title="Time in seconds for one complete wave cycle — shorter period = faster ripple through the text, longer period = slow rolling motion" />
+				<Slider label="Density" value={effectiveDensity} min={0.5} max={5} step={0.5} onChange={setDensity} title="Number of wave cycles visible across the text at once — low density = one gentle sweep, high density = many rapid ripples" />
 			</div>
 
 			{/* Effect, wave shape, direction toggles + cursor/gyro mode buttons */}
 			<div className="flex flex-wrap items-center gap-3 mb-8">
 				<span className="text-xs uppercase tracking-widest opacity-50">Effect</span>
 				{ALL_EFFECTS.map(v => (
-					<button key={v} onClick={() => handleEffectToggle(v)} aria-pressed={activeEffects.has(v)} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: activeEffects.has(v) ? 1 : 0.5, background: activeEffects.has(v) ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+					<button key={v} onClick={() => handleEffectToggle(v)} aria-pressed={activeEffects.has(v)} title={EFFECT_TOOLTIP[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: activeEffects.has(v) ? 1 : 0.5, background: activeEffects.has(v) ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Wave</span>
 				{(['sine', 'sawtooth', 'triangle'] as const).map(v => (
-					<button key={v} onClick={() => setWaveShape(v)} aria-pressed={waveShape === v} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: waveShape === v ? 1 : 0.5, background: waveShape === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+					<button key={v} onClick={() => setWaveShape(v)} aria-pressed={waveShape === v} title={WAVE_TOOLTIP[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: waveShape === v ? 1 : 0.5, background: waveShape === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 				))}
 				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Direction</span>
 				{(['diagonal-down', 'diagonal-up', 'right', 'left'] as const).map(v => (
