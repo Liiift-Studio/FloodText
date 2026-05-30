@@ -1,5 +1,5 @@
 // floodText/src/core/adjust.ts — framework-agnostic DOM algorithm and per-character animation
-import { FLOOD_TEXT_CLASSES, type FloodTextOptions, type FloodEffect, type FloodProperty } from './types'
+import { FLOOD_TEXT_CLASSES, type FloodTextOptions, type FloodEffect, type FloodProperty, type WaveShape } from './types'
 
 // ─── Pause/resume registry ────────────────────────────────────────────────────
 
@@ -97,7 +97,8 @@ function collectTextNodes(root: Node, collected: Text[]): void {
  *
  * @param element      - Live DOM element (must be rendered and visible)
  * @param originalHTML - HTML snapshot taken before the first call
- * @param _options     - FloodTextOptions (unused during apply — kept for API symmetry)
+ * @param options      - FloodTextOptions. Reads options.source to trigger background sentiment
+ *                       module load (dynamic import side-effect) when source === 'sentiment'.
  */
 export function applyFloodText(
 	element: HTMLElement,
@@ -125,10 +126,20 @@ export function applyFloodText(
 		return []
 	}
 
+	// Save scroll position before any DOM mutations.
+	// iOS Safari ignores overflow-anchor: none, so innerHTML writes can jump the page.
+	const scrollY = window.scrollY
+
 	// --- Pass 1: Reset ---
 	element.innerHTML = originalHTML
 
 	if (!element.textContent?.trim()) return []
+
+	// Stamp the plain-text content as aria-label on the container so screen readers
+	// announce the full word/sentence instead of individual letter names.
+	// Each .ft-char span gets aria-hidden="true" so assistive technology skips it.
+	const plainText = element.textContent ?? ''
+	element.setAttribute('aria-label', plainText)
 
 	// --- Pass 2: Walk text nodes, wrap each character ---
 	// When source is 'sentiment', score each word via the sentiment package (once loaded)
@@ -167,6 +178,7 @@ export function applyFloodText(
 					const span = document.createElement('span')
 					span.className = FLOOD_TEXT_CLASSES.char
 					span.textContent = char
+					span.setAttribute('aria-hidden', 'true')
 					if (useSentiment) {
 						span.dataset.ftSentiment = String(rawScore)
 					}
@@ -176,8 +188,17 @@ export function applyFloodText(
 			}
 		}
 
-		textNode.parentNode!.replaceChild(fragment, textNode)
+		if (textNode.parentNode) {
+			textNode.parentNode.replaceChild(fragment, textNode)
+		}
 	}
+
+	// Restore scroll position after DOM mutations — iOS Safari does not honour overflow-anchor.
+	requestAnimationFrame(() => {
+		if (Math.abs(window.scrollY - scrollY) > 2) {
+			window.scrollTo({ top: scrollY, behavior: 'instant' })
+		}
+	})
 
 	return charSpans
 }
@@ -191,7 +212,7 @@ export function applyFloodText(
  */
 export function computeWave(
 	phase: number,
-	waveShape: FloodTextOptions['waveShape'] = 'sine',
+	waveShape: WaveShape = 'sine',
 ): number {
 	if (waveShape === 'sawtooth') {
 		return 2 * ((phase % 1 + 1) % 1) - 1
@@ -234,13 +255,16 @@ function applyEffectsToSpan(
 
 		switch (effect) {
 			case 'wght':
-				fvsParts.push(`'wght' ${value.toFixed(1)}`)
+				// Clamp to valid OpenType wght range [1, 1000]
+				fvsParts.push(`'wght' ${Math.max(1, Math.min(1000, value)).toFixed(1)}`)
 				break
 			case 'wdth':
-				fvsParts.push(`'wdth' ${value.toFixed(1)}`)
+				// Clamp to valid OpenType wdth range [1, 1000] — practical fonts typically use [75, 125]
+				fvsParts.push(`'wdth' ${Math.max(1, Math.min(1000, value)).toFixed(1)}`)
 				break
 			case 'oblique':
-				span.style.fontStyle = `oblique ${value.toFixed(1)}deg`
+				// Clamp to CSS oblique range [-90deg, 90deg]
+				span.style.fontStyle = `oblique ${Math.max(-90, Math.min(90, value)).toFixed(1)}deg`
 				break
 			case 'opacity':
 				span.style.opacity = Math.max(0, Math.min(1, value)).toFixed(3)
@@ -258,9 +282,13 @@ function applyEffectsToSpan(
 		}
 	}
 
-	// Merge wght + wdth into a single declaration so they don't overwrite each other
+	// Merge wght + wdth into a single declaration so they don't overwrite each other.
+	// Clear any stale value when the current effect set produces no FVS parts —
+	// otherwise a prior axis value persists and overrides CSS-level font-variation-settings.
 	if (fvsParts.length > 0) {
 		span.style.fontVariationSettings = fvsParts.join(', ')
+	} else {
+		span.style.fontVariationSettings = ''
 	}
 
 	// --- Custom CSS properties ---
@@ -299,19 +327,25 @@ function computeCharPositions(
 	const n = charSpans.length
 	if (n === 0) return []
 
-	// Batch-read all BCRs before any writes (no layout thrash)
-	const rects = charSpans.map((s) => s.getBoundingClientRect())
-	const xs = rects.map((r) => r.left + r.width / 2)
-	const ys = rects.map((r) => r.top + r.height / 2)
-
-	const minX = Math.min(...xs)
-	const maxX = Math.max(...xs)
-	const minY = Math.min(...ys)
-	const maxY = Math.max(...ys)
+	// Batch-read all BCRs before any writes (no layout thrash).
+	// Compute min/max with a manual loop to avoid spread-argument stack-limit issues
+	// on long texts and to avoid the O(n) intermediate array copies that spread requires.
+	const xs = new Float64Array(n)
+	const ys = new Float64Array(n)
+	let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+	for (let i = 0; i < n; i++) {
+		const r = charSpans[i].getBoundingClientRect()
+		xs[i] = r.left + r.width / 2
+		ys[i] = r.top + r.height / 2
+		if (xs[i] < minX) minX = xs[i]
+		if (xs[i] > maxX) maxX = xs[i]
+		if (ys[i] < minY) minY = ys[i]
+		if (ys[i] > maxY) maxY = ys[i]
+	}
 	const rangeX = maxX - minX || 1
 	const rangeY = maxY - minY || 1
 
-	return rects.map((_, i) => {
+	return Array.from({ length: n }, (_, i) => {
 		const nx = (xs[i] - minX) / rangeX // 0 = leftmost, 1 = rightmost
 		const ny = (ys[i] - minY) / rangeY // 0 = topmost,  1 = bottommost
 
@@ -449,10 +483,14 @@ export function startFloodText(
 	rafId = requestAnimationFrame(tick)
 
 	// ─── Registry + pause-offscreen ───────────────────────────────────────────
-	// Derive the container element from the first char span so callers can pass
-	// el directly to pauseFloodText / resumeFloodText.  charSpans[0].parentElement
-	// is available here because applyFloodText has already inserted the spans.
-	const containerEl = charSpans[0].parentElement as HTMLElement | null
+	// Walk up from the first char span to the nearest non-ft-char ancestor.
+	// charSpans[0].parentElement may be an <em> or <strong> if the first character
+	// is nested inside an inline element — in that case we need to keep walking to
+	// reach the actual container that was passed to applyFloodText/pauseFloodText.
+	let containerEl: HTMLElement | null = charSpans[0].parentElement as HTMLElement | null
+	while (containerEl && containerEl.classList.contains(FLOOD_TEXT_CLASSES.char)) {
+		containerEl = containerEl.parentElement as HTMLElement | null
+	}
 
 	if (containerEl) {
 		_animRegistry.set(containerEl, {
@@ -533,4 +571,6 @@ export function resumeFloodText(el: HTMLElement): void {
  */
 export function removeFloodText(element: HTMLElement, originalHTML: string): void {
 	element.innerHTML = originalHTML
+	// Remove the aria-label stamped by applyFloodText — the restored markup speaks for itself.
+	element.removeAttribute('aria-label')
 }

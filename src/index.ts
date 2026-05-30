@@ -2,5 +2,5 @@
 export { applyFloodText, startFloodText, removeFloodText, pauseFloodText, resumeFloodText, getCleanHTML, computeWave } from './core/adjust'
 export { useFloodText } from './react/useFloodText'
 export { FloodText } from './react/FloodText'
-export type { FloodTextOptions, FloodEffect, FloodProperty } from './core/types'
+export type { FloodTextOptions, FloodEffect, FloodProperty, WaveShape } from './core/types'
 export { FLOOD_TEXT_CLASSES } from './core/types'

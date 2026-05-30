@@ -106,7 +106,7 @@ const opts: FloodTextOptions = { effect: effects, period: 4 }
 | `properties` | — | Custom CSS properties or variables to animate per character. Each entry: `{ property, base, amplitude, unit?, clamp? }` where `clamp` is an optional `[min, max]` pair to cap the result (e.g. `[0, 1]` for opacity). E.g. `[{ property: 'letter-spacing', base: 0, amplitude: 0.05, unit: 'em' }]` or `[{ property: '--my-axis', base: 100, amplitude: 20, clamp: [50, 150] }]` |
 | `period` | `4` | Seconds per full wave cycle |
 | `density` | `2` | Wave cycles visible across the paragraph at once. Higher = more bands |
-| `direction` | `'diagonal-down'` | `'diagonal-down'` ↘ \| `'diagonal-up'` ↗ \| `'right'` → \| `'left'` ←. Diagonal directions use 2D screen coordinates; `right`/`left` use sequential character index |
+| `direction` | `'diagonal-down'` | `'diagonal-down'` ↘ \| `'diagonal-up'` ↗ \| `'right'` → \| `'left'` ←. All directions use 2D screen coordinates from `getBoundingClientRect` — read once before the animation loop starts |
 | `waveShape` | `'sine'` | `'sine'` \| `'sawtooth'` \| `'triangle'` |
 | `pauseOffscreen` | `true` | Pause the animation when the element scrolls out of view; resume when visible. Uses IntersectionObserver internally |
 | `as` | `'p'` | HTML element to render, e.g. `'h1'`, `'span'`. *(React component only)* |
@@ -117,7 +117,7 @@ const opts: FloodTextOptions = { effect: effects, period: 4 }
 
 Every visible character is wrapped in an inline `<span>`. Whitespace is left as bare text nodes — no layout impact, no reflow. Each frame, the wave function is evaluated at that character's normalised position in the paragraph. The `density` option controls how many wave cycles are visible at once.
 
-For `direction: 'right'` or `'left'`, position is the sequential character index — no DOM reads in the animation loop. For diagonal directions, each character's 2D screen coordinates are read via `getBoundingClientRect` once before the loop starts and projected onto the diagonal axis. Speed is framerate-independent; the loop excludes time the tab was hidden to prevent phase jumps when re-entering focus. In React, the animation loop is tied to the component lifecycle and stops automatically on unmount. The React hook skips the animation entirely if `prefers-reduced-motion: reduce` is set.
+For all directions, each character's 2D screen coordinates are read via `getBoundingClientRect` once before the loop starts. `right`/`left` use the horizontal x-coordinate so characters at the same column across lines are in phase; diagonal directions project onto a 2D axis. Speed is framerate-independent; the loop excludes time the tab was hidden to prevent phase jumps when re-entering focus. In React, the animation loop is tied to the component lifecycle and stops automatically on unmount. The React hook skips the animation entirely if `prefers-reduced-motion: reduce` is set.
 
 **Line break safety:** Character spans are inline (not inline-block), so applying styles per character does not change line widths or word breaks. The browser's natural line-breaking is fully preserved.
 

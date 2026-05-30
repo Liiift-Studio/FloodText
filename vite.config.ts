@@ -16,9 +16,7 @@ export default defineConfig({
 		},
 		rollupOptions: {
 			external: ['react', 'react-dom', 'react/jsx-runtime'],
-			output: {
-				globals: { react: 'React', 'react-dom': 'ReactDOM' },
-			},
+			// No globals needed — this build only produces es and cjs formats, not iife/umd.
 		},
 	},
 })

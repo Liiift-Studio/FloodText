@@ -18,7 +18,7 @@ export function useFloodText(options: FloodTextOptions) {
 	const optionsRef      = useRef(options)
 	optionsRef.current = options
 
-	const { effect, amplitude, amplitudes, properties, period, density, direction, waveShape } = options
+	const { effect, amplitude, amplitudes, properties, period, density, direction, waveShape, source, pauseOffscreen } = options
 
 	// Serialize array/object deps to stable strings so the dep array comparison works correctly
 	const effectKey     = Array.isArray(effect) ? effect.join(',') : (effect ?? 'wght')
@@ -48,12 +48,17 @@ export function useFloodText(options: FloodTextOptions) {
 		// Start animation loop and return its stop function
 		return startFloodText(charSpans, optionsRef.current)
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [effectKey, amplitude, amplitudesKey, propertiesKey, period, density, direction, waveShape])
+	}, [effectKey, amplitude, amplitudesKey, propertiesKey, period, density, direction, waveShape, source, pauseOffscreen])
 
 	// Re-run after fonts load — BCR-based character grouping and line detection give
 	// wrong results if called before the variable font finishes loading.
+	// Guard with a mounted flag so the callback does nothing if fonts resolve after unmount.
 	useEffect(() => {
-		document.fonts?.ready?.then(run)
+		let mounted = true
+		document.fonts?.ready?.then(() => {
+			if (mounted) run()
+		})
+		return () => { mounted = false }
 	}, [run])
 
 	useLayoutEffect(() => {
@@ -73,15 +78,20 @@ export function useFloodText(options: FloodTextOptions) {
 			const w = Math.round(entries[0].contentRect.width)
 			if (w === lastWidth) return
 			lastWidth = w
-			// Stop existing animation, then re-wrap and restart on next frame
+			// Cancel any pending restart rAF and stop the running animation synchronously.
+			// Assigning a no-op before the new rAF fires prevents a second concurrent call
+			// to the old stop function if ResizeObserver fires again before the rAF runs.
 			stopAnimation()
+			stopAnimation = () => {}
 			cancelAnimationFrame(rafId)
 			rafId = requestAnimationFrame(() => {
 				stopAnimation = run()
 			})
 		})
 
-		ro.observe(ref.current!)
+		if (ref.current) {
+			ro.observe(ref.current)
+		}
 
 		return () => {
 			ro.disconnect()

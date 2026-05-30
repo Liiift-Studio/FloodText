@@ -3,6 +3,9 @@
 /** Style effect driven by the per-character wave */
 export type FloodEffect = 'wght' | 'wdth' | 'oblique' | 'opacity' | 'rotation' | 'blur' | 'size'
 
+/** Shape of the per-character wave cycle */
+export type WaveShape = 'sine' | 'sawtooth' | 'triangle'
+
 /**
  * A custom CSS property to animate on each character, driven by the same wave
  * as the built-in effects. Works with any CSS property or custom property (CSS variable).
@@ -76,7 +79,7 @@ export interface FloodTextOptions {
 	/** Wave travel direction through the text (default: 'diagonal-down') */
 	direction?: 'right' | 'left' | 'diagonal-down' | 'diagonal-up'
 	/** Shape of the wave (default: 'sine') */
-	waveShape?: 'sine' | 'sawtooth' | 'triangle'
+	waveShape?: WaveShape
 	/**
 	 * Automatically pause the rAF loop when the element scrolls out of the viewport
 	 * and resume it when it returns. Uses IntersectionObserver internally.
