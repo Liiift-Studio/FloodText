@@ -1,16 +1,21 @@
 "use client"
 
 // Interactive flood-text demo with cursor/gyro mode, global scale for multi-effect, and live controls
-import { useState, useEffect, useDeferredValue, useRef } from "react"
+import { useState, useEffect, useDeferredValue, useRef, useMemo, useCallback } from "react"
 import { FloodText, pauseFloodText, resumeFloodText } from "@liiift-studio/floodtext"
 import type { FloodEffect } from "@liiift-studio/floodtext"
 
 const PARAGRAPHS = [
 	`A wave washes through the paragraph — not line by line, not word by word, but character by character. Every letterform sits at its own position in the curve: weight surges as the wave crests and falls as it troughs, oblique angles tilt and recover, opacity breathes through each glyph in sequence. The text is the same, but it is no longer still.`,
-	`CSS applies properties to elements, not to individual characters. Font variation settings, opacity, transforms — all or nothing, the entire block at once. Flood Text works around this by wrapping each visible character in its own span, evaluating the wave function at that character’s normalised position, and writing the result as an inline style. Whitespace is left as bare text nodes and never touched — no layout impact, no reflow.`,
+	`CSS applies properties to elements, not to individual characters. Font variation settings, opacity, transforms — all or nothing, the entire block at once. Flood Text works around this by wrapping each visible character in its own span, evaluating the wave function at that character's normalised position, and writing the result as an inline style. Whitespace is left as bare text nodes and never touched — no layout impact, no reflow.`,
 	`At low amplitude the effect is texture: a subtle restlessness the reader feels before they name it, like the slight variation in hand-set type. At high amplitude it becomes transformation — weight swinging from hairline to black, letters tilting into italics and back, the whole paragraph in motion. Density controls how many wave cycles are visible at once; period controls the tempo. Layer wght with oblique, or opacity with wdth, and the motion compounds into something no single CSS property could produce.`,
 ]
+
+/** Stable string used for character count — computed once at module level (#62) */
 const SAMPLE = PARAGRAPHS.join(' ')
+
+/** Total character count for caption — computed once at module level (#62) */
+const SAMPLE_CHAR_COUNT = SAMPLE.replace(/\s/g, '').length
 
 type Direction = 'diagonal-down' | 'diagonal-up' | 'right' | 'left'
 
@@ -59,25 +64,26 @@ const WAVE_TOOLTIP: Record<'sine' | 'sawtooth' | 'triangle', string> = {
 	triangle: 'Linear ramp up then down — motion is constant-speed with hard direction changes at peaks and troughs',
 }
 
-/** Labelled range slider with value displayed below the track */
-function Slider({ label, value, min, max, step, fmt, onChange, title }: { label: string; value: number; min: number; max: number; step: number; fmt?: (v: number) => string; onChange: (v: number) => void; title?: string }) {
+/** Labelled range slider with live value announced to screen readers via aria-describedby (#47) */
+function Slider({ label, value, min, max, step, fmt, onChange, title, disabled }: { label: string; value: number; min: number; max: number; step: number; fmt?: (v: number) => string; onChange: (v: number) => void; title?: string; disabled?: boolean }) {
 	// Stable id derived from label for aria-describedby association
 	const valueId = `slider-val-${label.replace(/\s+/g, '-').toLowerCase()}`
 	return (
 		<div className="flex flex-col gap-1">
 			<span className="text-xs uppercase tracking-widest opacity-50">{label}</span>
-			<input type="range" min={min} max={max} step={step} value={value} aria-label={label} aria-describedby={valueId} title={title} onChange={e => onChange(Number(e.target.value))} onTouchStart={e => e.stopPropagation()} style={{ touchAction: 'none' }} />
+			<input type="range" min={min} max={max} step={step} value={value} aria-label={label} aria-describedby={valueId} title={title} disabled={disabled} onChange={e => onChange(Number(e.target.value))} onTouchStart={e => e.stopPropagation()} style={{ touchAction: 'none', opacity: disabled ? 0.35 : undefined, cursor: disabled ? 'not-allowed' : undefined }} />
 			<span id={valueId} className="tabular-nums text-xs opacity-50 text-right">{fmt ? fmt(value) : value}</span>
 		</div>
 	)
 }
 
-/** Before/after toggle — left half = without effect, right half filled = with effect */
+/** Before/after toggle — left half = without effect, right half filled = with effect (#56: SVG aria-hidden) */
 function BeforeAfterToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
 	return (
 		<button
 			onClick={onClick}
 			aria-label="Toggle before/after comparison"
+			aria-pressed={active}
 			title={active ? 'Hide comparison' : 'Compare without effect'}
 			style={{
 				position: 'absolute', bottom: 0, right: 0,
@@ -89,7 +95,7 @@ function BeforeAfterToggle({ active, onClick }: { active: boolean; onClick: () =
 				cursor: 'pointer', transition: 'opacity 0.15s ease',
 			}}
 		>
-			<svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+			<svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true" focusable="false">
 				<rect x="0.5" y="0.5" width="13" height="9" rx="1" stroke="currentColor" strokeWidth="1"/>
 				<line x1="7" y1="0.5" x2="7" y2="9.5" stroke="currentColor" strokeWidth="1"/>
 				<rect x="8" y="1.5" width="5" height="7" fill="currentColor"/>
@@ -101,7 +107,7 @@ function BeforeAfterToggle({ active, onClick }: { active: boolean; onClick: () =
 /** Cursor icon SVG */
 function CursorIcon() {
 	return (
-		<svg width="11" height="14" viewBox="0 0 11 14" fill="currentColor" aria-hidden>
+		<svg width="11" height="14" viewBox="0 0 11 14" fill="currentColor" aria-hidden="true" focusable="false">
 			<path d="M0 0L0 11L3 8L5 13L6.8 12.3L4.8 7.3L8.5 7.3Z" />
 		</svg>
 	)
@@ -110,7 +116,7 @@ function CursorIcon() {
 /** Gyroscope icon SVG — circle with rotation arrow */
 function GyroIcon() {
 	return (
-		<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden>
+		<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true" focusable="false">
 			<circle cx="7" cy="7" r="5.5" />
 			<circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none" />
 			<path d="M7 1.5 A5.5 5.5 0 0 1 12.5 7" strokeWidth="1.4" />
@@ -134,6 +140,9 @@ export default function Demo() {
 	const [paused, setPaused] = useState(false)
 	const containerRef = useRef<HTMLDivElement>(null)
 
+	// Guard so pause/resume effect skips initial mount (#51)
+	const mountedRef = useRef(false)
+
 	// Interaction modes — mutually exclusive
 	const [cursorMode, setCursorMode] = useState(false)
 	const [gyroMode, setGyroMode] = useState(false)
@@ -147,7 +156,10 @@ export default function Demo() {
 	const [showCursor, setShowCursor] = useState(false)
 	const [showGyro, setShowGyro] = useState(false)
 
+	// Reduced-motion preference — start paused if user prefers reduced motion (#48)
 	useEffect(() => {
+		const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+		if (mq.matches) setPaused(true)
 		const isHover = window.matchMedia('(hover: hover)').matches
 		const isTouch = window.matchMedia('(hover: none)').matches
 		setShowCursor(isHover)
@@ -163,16 +175,18 @@ export default function Demo() {
 	const dDensity   = useDeferredValue(effectiveDensity)
 	const dScale     = useDeferredValue(scale)
 
-	const sampleStyle: React.CSSProperties = {
+	/** Stable style object — not recreated every render (#61) */
+	const sampleStyle: React.CSSProperties = useMemo(() => ({
 		fontFamily: "var(--font-merriweather), serif",
 		fontSize: "1.125rem",
 		lineHeight: "1.8",
 		fontVariationSettings: '"wght" 300, "opsz" 18, "wdth" 100',
-	}
+	}), [])
 
 	const singleEffect = activeEffects.size === 1 ? [...activeEffects][0] : null
 
-	function handleEffectToggle(v: FloodEffect) {
+	/** Stable effect toggle handler (#63) */
+	const handleEffectToggle = useCallback((v: FloodEffect) => {
 		setActiveEffects(prev => {
 			const next = new Set(prev)
 			if (next.has(v)) {
@@ -185,7 +199,7 @@ export default function Demo() {
 			if (next.size === 1) setAmplitude(EFFECT_CONFIG[[...next][0]].default)
 			return next
 		})
-	}
+	}, [])
 
 	// Cursor mode — X controls density (0.5–5), Y controls period (inverted: top=slow 12s, bottom=fast 1s)
 	useEffect(() => {
@@ -238,8 +252,12 @@ export default function Demo() {
 		}
 	}, [gyroMode])
 
-	// Pause/resume effect — calls library API when paused state changes
+	// Pause/resume effect — skips initial mount so it only runs after animation exists (#51)
 	useEffect(() => {
+		if (!mountedRef.current) {
+			mountedRef.current = true
+			return
+		}
 		if (!containerRef.current) return
 		if (paused) {
 			pauseFloodText(containerRef.current)
@@ -248,17 +266,17 @@ export default function Demo() {
 		}
 	}, [paused])
 
-	// Toggle pause/resume
-	const togglePause = () => setPaused(v => !v)
+	/** Stable pause toggle handler (#63) */
+	const togglePause = useCallback(() => setPaused(v => !v), [])
 
-	// Toggle cursor mode — turns off gyro if active
-	const toggleCursor = () => {
+	/** Stable cursor toggle handler (#63) */
+	const toggleCursor = useCallback(() => {
 		setGyroMode(false)
 		setCursorMode(v => !v)
-	}
+	}, [])
 
-	// Toggle gyro mode — requests iOS permission if needed, turns off cursor if active
-	const toggleGyro = async () => {
+	/** Toggle gyro mode — requests iOS permission with try/catch (#50) */
+	const toggleGyro = useCallback(async () => {
 		if (gyroMode) {
 			setGyroMode(false)
 			return
@@ -268,50 +286,72 @@ export default function Demo() {
 			requestPermission?: () => Promise<PermissionState>
 		}
 		if (typeof DOE.requestPermission === 'function') {
-			const permission = await DOE.requestPermission()
-			if (permission === 'granted') setGyroMode(true)
+			try {
+				const permission = await DOE.requestPermission()
+				if (permission === 'granted') setGyroMode(true)
+			} catch {
+				// Permission denied or dialog dismissed — remain in off state
+			}
 		} else {
 			setGyroMode(true)
 		}
-	}
+	}, [gyroMode])
 
 	const cfg = singleEffect ? EFFECT_CONFIG[singleEffect] : null
-	// Compute the effect prop: single string or array
-	const effectProp: FloodEffect | FloodEffect[] = singleEffect ?? [...activeEffects]
+
+	/** Stable effect prop — single string or array, not recreated every render (#61) */
+	const effectProp: FloodEffect | FloodEffect[] = useMemo(
+		() => singleEffect ?? [...activeEffects],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[singleEffect, activeEffects]
+	)
 
 	// Amplitude passed to FloodText: single effect uses the amplitude slider,
 	// multi-effect uses the scale slider value as a uniform amplitude proxy
 	const effectiveAmplitude = singleEffect ? dAmplitude : dScale
 
+	// Sliders are inactive (and visually dimmed) when cursor or gyro mode is driving values (#49)
 	const activeMode = cursorMode || gyroMode
 
 	return (
 		<div className="w-full">
-			{/* Wave controls */}
+			{/* Wave controls — period and density sliders are disabled during cursor/gyro mode (#49) */}
 			<div className="grid grid-cols-3 gap-6 mb-6">
 				{singleEffect && cfg ? (
 					<Slider label={`Amplitude${cfg.unit ? ` (${cfg.unit})` : ''}`} value={amplitude} min={cfg.min} max={cfg.max} step={cfg.step} fmt={cfg.step < 1 ? v => v.toFixed(2) : undefined} onChange={setAmplitude} title={`How far the wave swings the ${singleEffect} value above and below its baseline — higher amplitude = more dramatic variation character by character`} />
 				) : (
 					<Slider label="Scale ×" value={scale} min={0.1} max={3.0} step={0.1} fmt={v => v.toFixed(1)} onChange={setScale} title="Uniform multiplier applied to all active effects simultaneously — scale up for bolder motion, scale down to blend effects subtly" />
 				)}
-				<Slider label="Period (s)" value={effectivePeriod} min={1} max={12} step={0.5} onChange={setPeriod} title="Time in seconds for one complete wave cycle — shorter period = faster ripple through the text, longer period = slow rolling motion" />
-				<Slider label="Density" value={effectiveDensity} min={0.5} max={5} step={0.5} onChange={setDensity} title="Number of wave cycles visible across the text at once — low density = one gentle sweep, high density = many rapid ripples" />
+				<Slider label="Period (s)" value={effectivePeriod} min={1} max={12} step={0.5} onChange={setPeriod} title="Time in seconds for one complete wave cycle — shorter period = faster ripple through the text, longer period = slow rolling motion" disabled={activeMode} />
+				<Slider label="Density" value={effectiveDensity} min={0.5} max={5} step={0.5} onChange={setDensity} title="Number of wave cycles visible across the text at once — low density = one gentle sweep, high density = many rapid ripples" disabled={activeMode} />
 			</div>
 
-			{/* Effect, wave shape, direction toggles + cursor/gyro mode buttons */}
+			{/* Effect toggle group (#54: role=group with accessible label) */}
 			<div className="flex flex-wrap items-center gap-3 mb-8">
-				<span className="text-xs uppercase tracking-widest opacity-50">Effect</span>
-				{ALL_EFFECTS.map(v => (
-					<button key={v} onClick={() => handleEffectToggle(v)} aria-pressed={activeEffects.has(v)} title={EFFECT_TOOLTIP[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: activeEffects.has(v) ? 1 : 0.5, background: activeEffects.has(v) ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
-				))}
-				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Wave</span>
-				{(['sine', 'sawtooth', 'triangle'] as const).map(v => (
-					<button key={v} onClick={() => setWaveShape(v)} aria-pressed={waveShape === v} title={WAVE_TOOLTIP[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: waveShape === v ? 1 : 0.5, background: waveShape === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
-				))}
-				<span className="text-xs uppercase tracking-widest opacity-50 ml-4">Direction</span>
-				{(['diagonal-down', 'diagonal-up', 'right', 'left'] as const).map(v => (
-					<button key={v} onClick={() => setDirection(v)} aria-pressed={direction === v} aria-label={DIRECTION_DESCRIPTION[v]} title={DIRECTION_DESCRIPTION[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>{DIRECTION_LABELS[v]}</button>
-				))}
+				<div role="group" aria-label="Effect" className="flex flex-wrap items-center gap-3">
+					<span className="text-xs uppercase tracking-widest opacity-50" aria-hidden="true">Effect</span>
+					{ALL_EFFECTS.map(v => (
+						<button key={v} onClick={() => handleEffectToggle(v)} aria-pressed={activeEffects.has(v)} aria-label={EFFECT_TOOLTIP[v]} title={EFFECT_TOOLTIP[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: activeEffects.has(v) ? 1 : 0.5, background: activeEffects.has(v) ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+					))}
+				</div>
+
+				{/* Wave shape toggle group (#54) */}
+				<div role="group" aria-label="Wave shape" className="flex flex-wrap items-center gap-3 ml-4">
+					<span className="text-xs uppercase tracking-widest opacity-50" aria-hidden="true">Wave</span>
+					{(['sine', 'sawtooth', 'triangle'] as const).map(v => (
+						<button key={v} onClick={() => setWaveShape(v)} aria-pressed={waveShape === v} aria-label={WAVE_TOOLTIP[v]} title={WAVE_TOOLTIP[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: waveShape === v ? 1 : 0.5, background: waveShape === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
+					))}
+				</div>
+
+				{/* Direction toggle group (#54, #57: arrow symbol hidden from AT) */}
+				<div role="group" aria-label="Wave direction" className="flex flex-wrap items-center gap-3 ml-4">
+					<span className="text-xs uppercase tracking-widest opacity-50" aria-hidden="true">Direction</span>
+					{(['diagonal-down', 'diagonal-up', 'right', 'left'] as const).map(v => (
+						<button key={v} onClick={() => setDirection(v)} aria-pressed={direction === v} aria-label={DIRECTION_DESCRIPTION[v]} title={DIRECTION_DESCRIPTION[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>
+							<span aria-hidden="true">{DIRECTION_LABELS[v]}</span>
+						</button>
+					))}
+				</div>
 
 				{/* Cursor mode — desktop/hover-capable devices only */}
 				{showCursor && (
@@ -355,6 +395,7 @@ export default function Demo() {
 				<button
 					onClick={togglePause}
 					aria-pressed={paused}
+					aria-label={paused ? 'Resume animation' : 'Pause animation'}
 					title={paused ? 'Resume animation' : 'Pause animation'}
 					className="text-xs px-3 py-1 rounded-full border transition-opacity"
 					style={{
@@ -367,12 +408,12 @@ export default function Demo() {
 				</button>
 			</div>
 
-			{/* Live text */}
+			{/* Live text — stable keys from paragraph index label (#60) */}
 			<div className="relative pb-8">
 				<div ref={containerRef} className="flex flex-col gap-8">
 					{PARAGRAPHS.map((para, i) => (
 						<FloodText
-							key={i}
+							key={`para-${i}`}
 							effect={effectProp}
 							amplitude={effectiveAmplitude}
 							period={dPeriod}
@@ -389,7 +430,7 @@ export default function Demo() {
 				{beforeAfter && (
 					<div aria-hidden style={{ position: 'absolute', top: 0, left: 0, width: '100%', pointerEvents: 'none', opacity: 0.25 }} className="flex flex-col gap-8">
 						{PARAGRAPHS.map((para, i) => (
-							<p key={i} style={{ ...sampleStyle, margin: 0 }}>{para}</p>
+							<p key={`before-${i}`} style={{ ...sampleStyle, margin: 0 }}>{para}</p>
 						))}
 					</div>
 				)}
@@ -404,7 +445,7 @@ export default function Demo() {
 					</p>
 				) : (
 					<p className="text-xs opacity-50 italic" style={{ lineHeight: "1.8" }}>
-						A {waveShape} wave traveling {DIRECTION_DESCRIPTION[direction]} through {SAMPLE.replace(/\s/g, '').length} characters
+						A {waveShape} wave traveling {DIRECTION_DESCRIPTION[direction]} through {SAMPLE_CHAR_COUNT} characters
 						{singleEffect
 							? ` — ±${amplitude}${cfg?.unit ? ' ' + cfg.unit : ''} on ${singleEffect}`
 							: ` — layering ${[...activeEffects].join(' + ')} at scale ×${scale.toFixed(1)}`

@@ -1,3 +1,4 @@
+// FloodText landing page — per-character wave animation tool site
 import Demo from "@/components/Demo"
 import CopyInstall from "@/components/CopyInstall"
 import CodeBlock from "@/components/CodeBlock"
@@ -6,8 +7,23 @@ import { version } from "../../../package.json"
 import { version as siteVersion } from "../../package.json"
 import SiteFooter from "../components/SiteFooter"
 
+/** JSON-LD structured data for rich search results */
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'SoftwareApplication',
+	name: 'Flood Text',
+	url: 'https://floodtext.com',
+	applicationCategory: 'DeveloperApplication',
+	operatingSystem: 'Any',
+	description: 'A wave washes through text character by character — modulating weight, width, oblique angle, opacity, rotation, blur, or size. Zero dependencies, React + vanilla JS.',
+	offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+	programmingLanguage: 'TypeScript',
+}
+
 export default function Home() {
 	return (
+		<>
+		<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 		<main className="flex flex-col items-center px-6 py-20 gap-24">
 
 			{/* Hero */}
@@ -16,7 +32,7 @@ export default function Home() {
 					<p className="text-xs uppercase tracking-widest opacity-50">floodtext</p>
 					<h1 className="text-4xl lg:text-8xl xl:text-9xl" style={{ fontFamily: "var(--font-merriweather), serif", fontVariationSettings: '"wght" 300, "opsz" 144', lineHeight: "1.05em" }}>
 						<span>Character</span><br />
-						<span style={{ opacity: 0.5, fontStyle: "italic" }}>by character.</span>
+						<span style={{ opacity: 0.7, fontStyle: "italic" }}>by character.</span>
 					</h1>
 				</div>
 				<div className="flex items-center gap-4">
@@ -53,7 +69,7 @@ export default function Home() {
 					</div>
 					<div className="flex flex-col gap-3">
 						<p className="font-semibold opacity-100 text-base">Accessibility &amp; compatibility</p>
-						<p>On e-ink and slow-refresh displays (<span className="font-mono text-xs">update: slow</span> media feature — Kindle, Remarkable, and similar panels), the wave animation produces no visible effect. FloodText detects this automatically: the element is restored to its original HTML and all animation work is skipped. The <span className="font-mono text-xs">prefers-reduced-motion: reduce</span> preference is also checked — when set, the animation is skipped entirely and the element is left in its original state.</p>
+						<p>On e-ink and slow-refresh displays (<span className="font-mono text-xs">update: slow</span> media feature — Kindle, Remarkable, and similar panels), the wave animation produces no visible effect. FloodText detects this automatically: the element is restored to its original HTML and all animation work is skipped. The <span className="font-mono text-xs">prefers-reduced-motion: reduce</span> preference is also honoured — when set, the animation is skipped entirely and the element is left in its original state. The demo above respects this preference too: if reduced motion is set in your OS, the text will remain static.</p>
 					</div>
 				</div>
 			</section>
@@ -97,7 +113,7 @@ removeFloodText(el, original)`} />
 						<p className="opacity-50">Options</p>
 						<table className="w-full text-xs">
 							<caption className="sr-only">FloodText options reference</caption>
-							<thead><tr className="opacity-50 text-left"><th className="pb-2 pr-6 font-semibold">Option</th><th className="pb-2 pr-6 font-semibold">Default</th><th className="pb-2 font-semibold">Description</th></tr></thead>
+							<thead><tr className="text-left border-b border-white/20"><th scope="col" className="pb-2 pr-6 font-semibold opacity-80">Option</th><th scope="col" className="pb-2 pr-6 font-semibold opacity-80">Default</th><th scope="col" className="pb-2 font-semibold opacity-80">Description</th></tr></thead>
 							<tbody className="opacity-70">
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">effect</td><td className="py-2 pr-6">&apos;wght&apos;</td><td className="py-2">&apos;wght&apos; | &apos;wdth&apos; | &apos;oblique&apos; | &apos;opacity&apos; | &apos;rotation&apos; | &apos;blur&apos; | &apos;size&apos;. Pass an array to layer multiple effects simultaneously. Note: oblique requires Chrome 87+, Firefox 88+, Safari 14.1+. size causes layout recalculation per frame — use low amplitude.</td></tr>
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">source</td><td className="py-2 pr-6">&apos;fixed&apos;</td><td className="py-2">&apos;fixed&apos; — all characters share the same amplitude. &apos;sentiment&apos; — per-word AFINN emotional valence scores scale the amplitude; requires <code className="font-mono">npm install sentiment</code>, falls back to &apos;fixed&apos; if not installed.</td></tr>
@@ -119,5 +135,6 @@ removeFloodText(el, original)`} />
 			<SiteFooter current="floodText" npmVersion={version} siteVersion={siteVersion} />
 
 		</main>
+		</>
 	)
 }
