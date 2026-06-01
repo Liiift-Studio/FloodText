@@ -5,7 +5,6 @@ import ToolDirectory from "@/components/ToolDirectory"
 import { version } from "../../../package.json"
 import { version as siteVersion } from "../../package.json"
 import SiteFooter from "../components/SiteFooter"
-import { MagnetChar } from "@liiift-studio/magnettype"
 
 export default function Home() {
 	return (
@@ -16,8 +15,8 @@ export default function Home() {
 				<div className="flex flex-col gap-2">
 					<p className="text-xs uppercase tracking-widest opacity-50">floodtext</p>
 					<h1 className="text-4xl lg:text-8xl xl:text-9xl" style={{ fontFamily: "var(--font-merriweather), serif", fontVariationSettings: '"wght" 300, "opsz" 144', lineHeight: "1.05em" }}>
-						<MagnetChar as="span" minWeight={300} maxWeight={800} spreadRadius={220} fixedAxes={{ opsz: 144 }}>Character</MagnetChar><br />
-						<MagnetChar as="span" minWeight={300} maxWeight={800} spreadRadius={220} fixedAxes={{ opsz: 144 }} style={{ opacity: 0.5, fontStyle: "italic" }}>by character.</MagnetChar>
+						<span>Character</span><br />
+						<span style={{ opacity: 0.5, fontStyle: "italic" }}>by character.</span>
 					</h1>
 				</div>
 				<div className="flex items-center gap-4">
@@ -54,7 +53,7 @@ export default function Home() {
 					</div>
 					<div className="flex flex-col gap-3">
 						<p className="font-semibold opacity-100 text-base">Accessibility &amp; compatibility</p>
-						<p>On e-ink and slow-refresh displays (<span className="font-mono text-xs">update: slow</span> media feature — Kindle, Remarkable, and similar panels), the wave animation produces no visible effect. FloodText detects this automatically: the element is restored to its original HTML and all animation work is skipped. The <span className="font-mono text-xs">prefers-reduced-motion: reduce</span> preference is not checked here, but the <span className="font-mono text-xs">active</span> option on the React component lets callers opt out.</p>
+						<p>On e-ink and slow-refresh displays (<span className="font-mono text-xs">update: slow</span> media feature — Kindle, Remarkable, and similar panels), the wave animation produces no visible effect. FloodText detects this automatically: the element is restored to its original HTML and all animation work is skipped. The <span className="font-mono text-xs">prefers-reduced-motion: reduce</span> preference is also checked — when set, the animation is skipped entirely and the element is left in its original state.</p>
 					</div>
 				</div>
 			</section>
@@ -86,8 +85,9 @@ const ref = useFloodText({ effect: 'wght', amplitude: 200, period: 4, density: 2
 
 const el = document.querySelector('p')
 const original = getCleanHTML(el)
-const chars = applyFloodText(el, original, { effect: 'wght', amplitude: 200, period: 4, density: 2, direction: 'diagonal-down' })
-const stop = startFloodText(chars, { effect: 'wght', amplitude: 200, period: 4, density: 2, direction: 'diagonal-down' })
+const opts = { effect: 'wght', amplitude: 200, period: 4, density: 2, direction: 'diagonal-down' }
+const chars = applyFloodText(el, original, opts)
+const stop = startFloodText(chars, opts)
 
 // Later — stop animation and restore:
 stop()
@@ -96,7 +96,8 @@ removeFloodText(el, original)`} />
 					<div className="flex flex-col gap-3">
 						<p className="opacity-50">Options</p>
 						<table className="w-full text-xs">
-							<thead><tr className="opacity-50 text-left"><th className="pb-2 pr-6 font-normal">Option</th><th className="pb-2 pr-6 font-normal">Default</th><th className="pb-2 font-normal">Description</th></tr></thead>
+							<caption className="sr-only">FloodText options reference</caption>
+							<thead><tr className="opacity-50 text-left"><th className="pb-2 pr-6 font-semibold">Option</th><th className="pb-2 pr-6 font-semibold">Default</th><th className="pb-2 font-semibold">Description</th></tr></thead>
 							<tbody className="opacity-70">
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">effect</td><td className="py-2 pr-6">&apos;wght&apos;</td><td className="py-2">&apos;wght&apos; | &apos;wdth&apos; | &apos;oblique&apos; | &apos;opacity&apos; | &apos;rotation&apos; | &apos;blur&apos; | &apos;size&apos;. Pass an array to layer multiple effects simultaneously. Note: oblique requires Chrome 87+, Firefox 88+, Safari 14.1+. size causes layout recalculation per frame — use low amplitude.</td></tr>
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">source</td><td className="py-2 pr-6">&apos;fixed&apos;</td><td className="py-2">&apos;fixed&apos; — all characters share the same amplitude. &apos;sentiment&apos; — per-word AFINN emotional valence scores scale the amplitude; requires <code className="font-mono">npm install sentiment</code>, falls back to &apos;fixed&apos; if not installed.</td></tr>

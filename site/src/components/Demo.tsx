@@ -61,11 +61,13 @@ const WAVE_TOOLTIP: Record<'sine' | 'sawtooth' | 'triangle', string> = {
 
 /** Labelled range slider with value displayed below the track */
 function Slider({ label, value, min, max, step, fmt, onChange, title }: { label: string; value: number; min: number; max: number; step: number; fmt?: (v: number) => string; onChange: (v: number) => void; title?: string }) {
+	// Stable id derived from label for aria-describedby association
+	const valueId = `slider-val-${label.replace(/\s+/g, '-').toLowerCase()}`
 	return (
 		<div className="flex flex-col gap-1">
 			<span className="text-xs uppercase tracking-widest opacity-50">{label}</span>
-			<input type="range" min={min} max={max} step={step} value={value} aria-label={label} title={title} onChange={e => onChange(Number(e.target.value))} onTouchStart={e => e.stopPropagation()} style={{ touchAction: 'none' }} />
-			<span className="tabular-nums text-xs opacity-50 text-right">{fmt ? fmt(value) : value}</span>
+			<input type="range" min={min} max={max} step={step} value={value} aria-label={label} aria-describedby={valueId} title={title} onChange={e => onChange(Number(e.target.value))} onTouchStart={e => e.stopPropagation()} style={{ touchAction: 'none' }} />
+			<span id={valueId} className="tabular-nums text-xs opacity-50 text-right">{fmt ? fmt(value) : value}</span>
 		</div>
 	)
 }
@@ -315,6 +317,8 @@ export default function Demo() {
 				{showCursor && (
 					<button
 						onClick={toggleCursor}
+						aria-pressed={cursorMode}
+						aria-label={cursorMode ? 'Cursor mode active — press Escape to exit' : 'Enable cursor mode: move cursor to control density and period'}
 						title="Move your cursor to control density (X) and period (Y)"
 						className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border transition-all ml-auto"
 						style={{
@@ -332,6 +336,8 @@ export default function Demo() {
 				{showGyro && (
 					<button
 						onClick={toggleGyro}
+						aria-pressed={gyroMode}
+						aria-label={gyroMode ? 'Tilt mode active — tap to disable' : 'Enable tilt mode: tilt device to control density and period'}
 						title="Tilt your device to control density (left/right) and period (front/back)"
 						className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border transition-all ml-auto"
 						style={{
