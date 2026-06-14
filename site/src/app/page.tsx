@@ -6,6 +6,7 @@ import ToolDirectory from "@/components/ToolDirectory"
 import { version } from "../../../package.json"
 import { version as siteVersion } from "../../package.json"
 import SiteFooter from "../components/SiteFooter"
+import { MagnetChar } from "@liiift-studio/magnettype"
 
 /** JSON-LD structured data for rich search results */
 const jsonLd = {
@@ -29,27 +30,35 @@ export default function Home() {
 			{/* Hero */}
 			<section className="w-full max-w-2xl lg:max-w-5xl flex flex-col gap-6">
 				<div className="flex flex-col gap-2">
-					<p className="text-xs uppercase tracking-widest opacity-50">floodtext</p>
+					<p className="text-xs uppercase tracking-[0.18em] font-medium text-muted">floodtext</p>
 					<h1 className="text-4xl lg:text-8xl xl:text-9xl" style={{ fontFamily: "var(--font-merriweather), serif", fontVariationSettings: '"wght" 300, "opsz" 144', lineHeight: "1.05em" }}>
-						<span>Character</span><br />
-						<span style={{ opacity: 0.7, fontStyle: "italic" }}>by character.</span>
+						<MagnetChar as="span" minWeight={300} maxWeight={800} spreadRadius={220} fixedAxes={{ opsz: 144 }}>Character</MagnetChar><br />
+						<MagnetChar as="span" minWeight={300} maxWeight={800} spreadRadius={220} fixedAxes={{ opsz: 144 }} style={{ color: "var(--foreground-subtle)", fontStyle: "italic" }}>by character.</MagnetChar>
 					</h1>
 				</div>
 				<div className="flex items-center gap-4">
 					<CopyInstall />
-					<a href="https://github.com/Liiift-Studio/FloodText" className="text-sm opacity-50 hover:opacity-100 transition-opacity">GitHub</a>
+					<a
+						href="https://github.com/Liiift-Studio/FloodText"
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label="FloodText on GitHub (opens in new tab)"
+						className="text-sm text-muted hover:text-foreground transition-colors"
+					>
+						GitHub ↗
+					</a>
 				</div>
-				<div className="flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-50 tracking-wide">
-					<span>TypeScript</span><span>·</span><span>Zero dependencies</span><span>·</span><span>React + Vanilla JS</span>
+				<div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted tracking-wide">
+					<span>TypeScript</span><span aria-hidden="true">·</span><span>Zero dependencies</span><span aria-hidden="true">·</span><span>React + Vanilla JS</span>
 				</div>
-				<p className="text-base opacity-60 leading-relaxed max-w-lg">
+				<p className="text-base leading-relaxed max-w-lg">
 					A wave washes through the body copy character by character — modulating weight, width, oblique angle, or opacity as it passes. Not line by line, not word by word: every letterform sits at its own moment in the curve. At low amplitude it reads as texture; at high amplitude, as transformation.
 				</p>
 			</section>
 
 			{/* Demo */}
 			<section className="w-full max-w-2xl lg:max-w-5xl flex flex-col gap-4">
-				<p className="text-xs uppercase tracking-widest opacity-50">Live demo — watch the paragraph</p>
+				<h2 className="text-xs uppercase tracking-[0.18em] font-medium text-muted">Live demo — watch the paragraph</h2>
 				<div className="rounded-xl -mx-8 px-8 py-8" style={{ background: "rgba(0,0,0,0.25)", overflow: 'hidden' }}>
 					<Demo />
 				</div>
@@ -57,18 +66,18 @@ export default function Home() {
 
 			{/* Explanation */}
 			<section className="w-full max-w-2xl lg:max-w-5xl flex flex-col gap-6">
-				<p className="text-xs uppercase tracking-widest opacity-50">How it works</p>
-				<div className="prose-grid grid grid-cols-1 sm:grid-cols-2 gap-12 text-sm leading-relaxed opacity-70">
+				<h2 className="text-xs uppercase tracking-[0.18em] font-medium text-muted">How it works</h2>
+				<div className="prose-grid grid grid-cols-1 sm:grid-cols-2 gap-12 text-sm leading-relaxed">
 					<div className="flex flex-col gap-3">
-						<p className="font-semibold opacity-100 text-base">Per-character phase</p>
+						<p className="font-semibold text-base">Per-character phase</p>
 						<p>Every visible character is wrapped in an inline span. Each frame, the wave function is evaluated at that character&rsquo;s position in the text — normalised across the whole paragraph. The density option controls how many wave cycles are visible at once.</p>
 					</div>
 					<div className="flex flex-col gap-3">
-						<p className="font-semibold opacity-100 text-base">Traveling wave</p>
+						<p className="font-semibold text-base">Traveling wave</p>
 						<p>The wave advances through the characters over time using a requestAnimationFrame loop. Speed is consistent regardless of display refresh rate. The loop cleans up on unmount. Whitespace is left as bare text nodes — no layout impact, no reflow.</p>
 					</div>
 					<div className="flex flex-col gap-3">
-						<p className="font-semibold opacity-100 text-base">Accessibility &amp; compatibility</p>
+						<p className="font-semibold text-base">Accessibility &amp; compatibility</p>
 						<p>On e-ink and slow-refresh displays (<span className="font-mono text-xs">update: slow</span> media feature — Kindle, Remarkable, and similar panels), the wave animation produces no visible effect. FloodText detects this automatically: the element is restored to its original HTML and all animation work is skipped. The <span className="font-mono text-xs">prefers-reduced-motion: reduce</span> preference is also honoured — when set, the animation is skipped entirely and the element is left in its original state. The demo above respects this preference too: if reduced motion is set in your OS, the text will remain static.</p>
 					</div>
 				</div>
@@ -77,11 +86,11 @@ export default function Home() {
 			{/* Usage */}
 			<section className="w-full max-w-2xl lg:max-w-5xl flex flex-col gap-6">
 				<div className="flex items-baseline gap-4">
-					<p className="text-xs uppercase tracking-widest opacity-50">Usage</p>
+					<h2 className="text-xs uppercase tracking-[0.18em] font-medium text-muted">Usage</h2>
 				</div>
 				<div className="flex flex-col gap-8 text-sm">
 					<div className="flex flex-col gap-3">
-						<p className="opacity-50">Drop-in component</p>
+						<p className="text-muted">Drop-in component</p>
 						<CodeBlock code={`import { FloodText } from '@liiift-studio/floodtext'
 
 <FloodText effect="wght" amplitude={200} period={4} density={2} direction="diagonal-down">
@@ -89,14 +98,14 @@ export default function Home() {
 </FloodText>`} />
 					</div>
 					<div className="flex flex-col gap-3">
-						<p className="opacity-50">Hook</p>
+						<p className="text-muted">Hook</p>
 						<CodeBlock code={`import { useFloodText } from '@liiift-studio/floodtext'
 
 const ref = useFloodText({ effect: 'wght', amplitude: 200, period: 4, density: 2, direction: 'diagonal-down' })
 <p ref={ref}>{children}</p>`} />
 					</div>
 					<div className="flex flex-col gap-3">
-						<p className="opacity-50">Vanilla JS</p>
+						<p className="text-muted">Vanilla JS</p>
 						<CodeBlock code={`import { applyFloodText, startFloodText, removeFloodText, getCleanHTML } from '@liiift-studio/floodtext'
 
 const el = document.querySelector('p')
@@ -110,11 +119,17 @@ stop()
 removeFloodText(el, original)`} />
 					</div>
 					<div className="flex flex-col gap-3">
-						<p className="opacity-50">Options</p>
+						<p className="text-muted">Options</p>
 						<table className="w-full text-xs">
 							<caption className="sr-only">FloodText options reference</caption>
-							<thead><tr className="text-left border-b border-white/20"><th scope="col" className="pb-2 pr-6 font-semibold opacity-80">Option</th><th scope="col" className="pb-2 pr-6 font-semibold opacity-80">Default</th><th scope="col" className="pb-2 font-semibold opacity-80">Description</th></tr></thead>
-							<tbody className="opacity-70">
+							<thead>
+								<tr className="text-subtle text-left">
+									<th scope="col" className="pb-2 pr-6 font-normal">Option</th>
+									<th scope="col" className="pb-2 pr-6 font-normal">Default</th>
+									<th scope="col" className="pb-2 font-normal">Description</th>
+								</tr>
+							</thead>
+							<tbody className="text-muted">
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">effect</td><td className="py-2 pr-6">&apos;wght&apos;</td><td className="py-2">&apos;wght&apos; | &apos;wdth&apos; | &apos;oblique&apos; | &apos;opacity&apos; | &apos;rotation&apos; | &apos;blur&apos; | &apos;size&apos;. Pass an array to layer multiple effects simultaneously. Note: oblique requires Chrome 87+, Firefox 88+, Safari 14.1+. size causes layout recalculation per frame — use low amplitude.</td></tr>
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">source</td><td className="py-2 pr-6">&apos;fixed&apos;</td><td className="py-2">&apos;fixed&apos; — all characters share the same amplitude. &apos;sentiment&apos; — per-word AFINN emotional valence scores scale the amplitude; requires <code className="font-mono">npm install sentiment</code>, falls back to &apos;fixed&apos; if not installed.</td></tr>
 								<tr className="border-t border-white/10 hover:bg-white/5 transition-colors"><td className="py-2 pr-6 font-mono">amplitude</td><td className="py-2 pr-6">auto</td><td className="py-2">Peak deviation from neutral. Used for single-effect mode. Defaults: wght 200, wdth 20, oblique 15deg, opacity 0.3, rotation 15deg, blur 2px, size 0.15em.</td></tr>

@@ -70,9 +70,9 @@ function Slider({ label, value, min, max, step, fmt, onChange, title, disabled }
 	const valueId = `slider-val-${label.replace(/\s+/g, '-').toLowerCase()}`
 	return (
 		<div className="flex flex-col gap-1">
-			<span className="text-xs uppercase tracking-widest opacity-50">{label}</span>
+			<span className="text-xs uppercase tracking-[0.18em] font-medium text-muted">{label}</span>
 			<input type="range" min={min} max={max} step={step} value={value} aria-label={label} aria-describedby={valueId} title={title} disabled={disabled} onChange={e => onChange(Number(e.target.value))} onTouchStart={e => e.stopPropagation()} style={{ touchAction: 'none', opacity: disabled ? 0.35 : undefined, cursor: disabled ? 'not-allowed' : undefined }} />
-			<span id={valueId} className="tabular-nums text-xs opacity-50 text-right">{fmt ? fmt(value) : value}</span>
+			<span id={valueId} className="tabular-nums text-xs text-muted text-right">{fmt ? fmt(value) : value}</span>
 		</div>
 	)
 }
@@ -329,7 +329,7 @@ export default function Demo() {
 			{/* Effect toggle group (#54: role=group with accessible label) */}
 			<div className="flex flex-wrap items-center gap-3 mb-8">
 				<div role="group" aria-label="Effect" className="flex flex-wrap items-center gap-3">
-					<span className="text-xs uppercase tracking-widest opacity-50" aria-hidden="true">Effect</span>
+					<span className="text-xs uppercase tracking-[0.18em] font-medium text-muted" aria-hidden="true">Effect</span>
 					{ALL_EFFECTS.map(v => (
 						<button key={v} onClick={() => handleEffectToggle(v)} aria-pressed={activeEffects.has(v)} aria-label={EFFECT_TOOLTIP[v]} title={EFFECT_TOOLTIP[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: activeEffects.has(v) ? 1 : 0.5, background: activeEffects.has(v) ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 					))}
@@ -337,7 +337,7 @@ export default function Demo() {
 
 				{/* Wave shape toggle group (#54) */}
 				<div role="group" aria-label="Wave shape" className="flex flex-wrap items-center gap-3 ml-4">
-					<span className="text-xs uppercase tracking-widest opacity-50" aria-hidden="true">Wave</span>
+					<span className="text-xs uppercase tracking-[0.18em] font-medium text-muted" aria-hidden="true">Wave</span>
 					{(['sine', 'sawtooth', 'triangle'] as const).map(v => (
 						<button key={v} onClick={() => setWaveShape(v)} aria-pressed={waveShape === v} aria-label={WAVE_TOOLTIP[v]} title={WAVE_TOOLTIP[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: waveShape === v ? 1 : 0.5, background: waveShape === v ? 'var(--btn-bg)' : 'transparent' }}>{v}</button>
 					))}
@@ -345,7 +345,7 @@ export default function Demo() {
 
 				{/* Direction toggle group (#54, #57: arrow symbol hidden from AT) */}
 				<div role="group" aria-label="Wave direction" className="flex flex-wrap items-center gap-3 ml-4">
-					<span className="text-xs uppercase tracking-widest opacity-50" aria-hidden="true">Direction</span>
+					<span className="text-xs uppercase tracking-[0.18em] font-medium text-muted" aria-hidden="true">Direction</span>
 					{(['diagonal-down', 'diagonal-up', 'right', 'left'] as const).map(v => (
 						<button key={v} onClick={() => setDirection(v)} aria-pressed={direction === v} aria-label={DIRECTION_DESCRIPTION[v]} title={DIRECTION_DESCRIPTION[v]} className="text-xs px-3 py-1 rounded-full border transition-opacity" style={{ borderColor: 'currentColor', opacity: direction === v ? 1 : 0.5, background: direction === v ? 'var(--btn-bg)' : 'transparent' }}>
 							<span aria-hidden="true">{DIRECTION_LABELS[v]}</span>
@@ -440,11 +440,11 @@ export default function Demo() {
 			{/* Caption */}
 			<div className="flex items-center gap-3 mt-8">
 				{activeMode ? (
-					<p className="text-xs opacity-50 italic" style={{ lineHeight: "1.8" }}>
+					<p className="text-xs text-muted italic" style={{ lineHeight: "1.8" }}>
 						{cursorMode ? 'Move cursor to adjust density (X) and period (Y). Press Esc to exit.' : 'Tilt left/right for density, front/back for period.'}
 					</p>
 				) : (
-					<p className="text-xs opacity-50 italic" style={{ lineHeight: "1.8" }}>
+					<p className="text-xs text-muted italic" style={{ lineHeight: "1.8" }}>
 						A {waveShape} wave traveling {DIRECTION_DESCRIPTION[direction]} through {SAMPLE_CHAR_COUNT} characters
 						{singleEffect
 							? ` — ±${amplitude}${cfg?.unit ? ' ' + cfg.unit : ''} on ${singleEffect}`
