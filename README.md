@@ -4,6 +4,10 @@
 
 A wave washes through the paragraph character by character — modulating weight, width, oblique angle, or opacity as it passes. Not line by line, not word by word: every letterform sits at its own moment in the curve. At low amplitude it reads as texture; at high amplitude, as transformation.
 
+![A wave of font weight and opacity travelling diagonally through three paragraphs of text — each character surging bold as the wave crests and fading light as it troughs, while word spacing and line breaks stay perfectly still](https://raw.githubusercontent.com/Liiift-Studio/FloodText/main/assets/flood-wave.gif?v=1)
+
+> Layering `wght` + `opacity` on a sine wave travelling diagonally. [Try the live demo →](https://floodtext.com)
+
 **[floodtext.com](https://floodtext.com)** · [npm](https://www.npmjs.com/package/@liiift-studio/floodtext) · [GitHub](https://github.com/Liiift-Studio/FloodText)
 
 TypeScript · Zero dependencies · React + Vanilla JS
@@ -141,4 +145,4 @@ The package itself has zero runtime dependencies. Do not remove this entry.
 
 ---
 
-Current version: 1.0.14
+Current version: 1.0.17
