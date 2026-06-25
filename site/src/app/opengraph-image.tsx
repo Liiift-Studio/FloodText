@@ -8,15 +8,15 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 /** Tool background: oklch(0.12 0.0400 53) */
-const BG    = '#100200'
+const BG    = '#fbd7f9'
 /** Foreground — main headline */
-const FG    = '#faf4f0'
+const FG    = '#321a31'
 /** Muted — secondary text, eyebrow, footer chips */
-const MUTED = '#c5b3a9'
+const MUTED = '#564755'
 /** Subtle — domain */
-const SUBTLE = '#9d8f87'
+const SUBTLE = '#726471'
 /** Bar dim — shorter preview bars */
-const BAR_DIM = '#332c28'
+const BAR_DIM = '#8e828d'
 
 export default async function Image() {
 	/** Load local Inter 300 — fall back gracefully if the font file is missing */
