@@ -8,7 +8,7 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 /** Tool background: oklch(0.12 0.0400 53) */
-const BG    = '#fbd7f9'
+const BG    = '#facdf8'
 /** Foreground — main headline */
 const FG    = '#321a31'
 /** Muted — secondary text, eyebrow, footer chips */

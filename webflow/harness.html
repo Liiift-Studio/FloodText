@@ -1,0 +1,70 @@
+<!doctype html>
+<!-- floodText/webflow/harness.html — local proof of the Webflow embed bundle.
+     Webflow's Custom Code Embed is a plain browser context, so this static page
+     mirrors exactly what a user gets: one <script> tag + [data-floodtext] markup.
+     Serve from the floodText repo root, e.g. `npx serve .`, then open /webflow/harness.html
+     (after `npm run build:webflow` has produced dist/floodtext.webflow.min.js). -->
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>floodText — Webflow embed harness</title>
+
+	<!-- A variable font with a continuous wght axis so the wave is visible. Local-test only. -->
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet" />
+
+	<style>
+		body {
+			margin: 0;
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			gap: 2rem;
+			background: #0e0e12;
+			color: #f4f4f6;
+			font-family: 'Roboto Flex', system-ui, sans-serif;
+			padding: 4rem 6vw;
+			box-sizing: border-box;
+		}
+		h1 {
+			font-size: clamp(2.5rem, 9vw, 7rem);
+			line-height: 1.05;
+			margin: 0;
+			max-width: 14ch;
+			text-align: center;
+			font-weight: 400;
+		}
+		p.note {
+			font-size: 0.9rem;
+			opacity: 0.5;
+			max-width: 42ch;
+			text-align: center;
+			line-height: 1.5;
+		}
+	</style>
+</head>
+<body>
+	<!-- The wght wave, sweeping diagonally. This is the whole Webflow integration:
+	     mark an element with data-floodtext and configure it via data-ft-* attributes. -->
+	<h1
+		data-floodtext
+		data-ft-effect="wght"
+		data-ft-amplitude="450"
+		data-ft-period="3"
+		data-ft-density="1.5"
+		data-ft-direction="diagonal-down"
+		data-ft-wave="sine"
+	>Typography that moves with intent</h1>
+
+	<p class="note">
+		If the weight ripples letter by letter, the Webflow embed pattern works —
+		the published <code>@liiift-studio/floodtext</code> core is running verbatim
+		from a single self-contained script.
+	</p>
+
+	<!-- The entire distribution surface: one script tag. Built by `npm run build:webflow`. -->
+	<script src="../dist/floodtext.webflow.min.js"></script>
+</body>
+</html>
